@@ -2,6 +2,8 @@
 
 Generated with the built-in image_gen tool (generate mode), 2026-09-29. All four originals were visually inspected. Three distinct oil-painted landscapes are for non-hero product backgrounds; the panoramic coastal watercolor supports the illustrated footer. WebP copies use cwebp quality 86 without cropping or color alteration. Original PNGs remain in place.
 
+This is the original asset-generation record. The current footer and referral card use `public/media/footer-cobalt-coast.webp`, documented in [the footer revision](footer-revision.md), which replaced the `footer-coast.webp` artwork below. See the [README previews](../README.md) for current website screenshots.
+
 ## painterly-dawn.webp
 
 Final project path: `public/media/painterly-dawn.webp`
@@ -41,4 +43,3 @@ Original output: `/Users/alexdakhli/.codex/generated_images/01a0ef5d-4087-7883-b
 Prompt:
 
 > Use case: stylized-concept. Asset type: panoramic website footer background illustration. Generate an exquisitely hand-painted Mediterranean coastal bay, panoramic 3:1 landscape composition approximately 2400x800. Watercolor wash and fine antique engraving linework hybrid on warm ivory paper, nuanced visible cotton paper texture. Quiet cobalt and turquoise sea in lower half, pale sage and muted blue distant hills, tiny old Mediterranean seaside village with charming cream stucco buildings and a small bell tower on the lower right shore, one small elegant sailboat at the lower left. Sky top 45 percent mostly open warm ivory/offwhite for navigation copy placement with only the faintest soft cloud washes. Most scenic detail lives in bottom half and far right; top left and upper middle intentionally exceptionally calm. Artistic sophisticated printed travel-book illustration, rich fine detailed paper texture and brushwork, subtly sun faded yet jewel-like blues. Full bleed image with no rectangular border. Absolutely no text, logos, watermarks, typography, interface, buttons, or labels.
-

@@ -2,7 +2,22 @@
 
 The marketing website for [Open Swarm](https://openswarm.com), a free AI desktop for Mac. Built with React, TypeScript, and Vite, it combines animated product demonstrations with a phone waitlist and referral flow.
 
-![Open Swarm website on desktop and mobile](docs/preview.jpg)
+<table>
+  <tr><th>Desktop</th><th>Mobile</th></tr>
+  <tr>
+    <td width="74%"><img src="docs/preview-desktop-2026-09-30.jpg" alt="Current desktop site with the Jarvis headline, phone waitlist, and animated product desktop" /></td>
+    <td width="26%"><img src="docs/preview-mobile-2026-09-30.jpg" alt="Current mobile site with phone signup, referral sharing, and the responsive product scene" /></td>
+  </tr>
+</table>
+
+Captured from the current website on September 30, 2026, at desktop (1440px) and mobile (390px) widths. Animations are shown in their reduced-motion resting state.
+
+<details>
+<summary>View the current illustrated footer</summary>
+
+![Current cobalt coastal footer with product and community links](docs/preview-footer-2026-09-30.jpg)
+
+</details>
 
 ## What's included
 
@@ -174,4 +189,4 @@ Items to confirm before a public launch:
 - Align Problem Validator's advertised source list with its six-agent demonstration and confirm the three “Coming soon” marketplace items.
 - Review illustrative quotes, restaurants, ratings, companies, candidates, amounts, and fixed dates in the demonstrations.
 
-For visual history and asset provenance, see [latest visual decisions](docs/sky-and-signup-refinement.md), [image assets](docs/image-assets.md), and [icon sources](docs/icon-sources.md).
+For visual history and asset provenance, see [latest visual decisions](docs/sky-and-signup-refinement.md), [current footer artwork](docs/footer-revision.md), [image assets](docs/image-assets.md), and [icon sources](docs/icon-sources.md).
