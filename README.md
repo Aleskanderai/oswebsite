@@ -1,172 +1,177 @@
 # Open Swarm website
 
-The marketing site for [Open Swarm](https://openswarm.com), the free AI desktop for Mac where you and your agents work together. It is a single page built with React and Vite, and every product shot on it is a coded animation rather than a screen recording, so the scenes stay sharp at any size and loop cleanly on phones.
+The marketing website for [Open Swarm](https://openswarm.com), a free AI desktop for Mac. Built with React, TypeScript, and Vite, it combines animated product demonstrations with a phone waitlist and referral flow.
 
-![The site on a desktop and on a phone](docs/preview.jpg)
+![Open Swarm website on desktop and mobile](docs/preview.jpg)
 
-**Local preview:** http://localhost:4310. Current changes have not been deployed publicly.
+## What's included
 
-## Running it locally
+- Responsive landing page with product capabilities, four team use cases, an agent marketplace, and mobile navigation.
+- React-based product animations with reduced-motion support, off-screen pausing, and a development scene viewer.
+- Phone signup with country selection, international number validation, and duplicate detection.
+- Personal invite links and referral progress. Three unique referred signups earn priority waitlist eligibility.
+- Local JSON storage for development, plus Node API handlers and a PostgreSQL migration for hosted signups.
 
-You need Node 20.19 or later on the 20 line, or Node 22.12 or newer (Vite 8 does not support Node 21 or early 22 releases).
+The product scenes are visual demonstrations. Marketplace actions lead to the waitlist. Priority eligibility is recorded by the backend; SMS delivery, phone ownership verification, and product account activation are not implemented.
+
+## Quick start
+
+Use Node.js 24 and npm to run the app and its tests.
 
 ```bash
-npm install
-```
-
-```bash
+git clone https://github.com/Aleskanderai/oswebsite.git
+cd oswebsite
+npm ci
 npm run dev
 ```
 
-The dev server always starts on http://localhost:4310 (the port is fixed in `vite.config.ts`).
+Open [localhost:4310](http://localhost:4310). The development port is fixed; stop another process using it before starting the server.
 
-| Command | What it does |
+Local signup works without environment variables or a database. Its first successful signup creates `.data/waitlist.json`. This file contains phone numbers, is ignored by Git, and is blocked from browser file requests. Run only one development or preview server against this store at a time.
+
+| Command | Purpose |
 | --- | --- |
-| `npm run dev` | Starts the dev server with hot reload |
-| `npm run build` | Type checks the project, then builds the static site into `dist/` |
-| `npm run preview` | Serves the built `dist/` folder so you can check the production build |
-| `npm run lint` | Runs oxlint |
+| `npm run dev` | Start the development server with hot reload and the local waitlist API |
+| `npm run build` | Type-check the app and server implementation, then build the frontend into `dist/` |
+| `npm run preview` | Serve the built frontend with the local waitlist API at `http://localhost:4173` by default |
+| `npm run lint` | Run oxlint |
+| `node --experimental-strip-types --test server/*.test.ts` | Run the waitlist, phone validation, and hosted handler tests |
 
-## Stack
+Run `npm run build` before `npm run preview`. The preview command is for local verification; hosted signups need the API and database described below.
 
-- React 19 and TypeScript, bundled by Vite 8
-- Tailwind CSS v4. The colour and type values are CSS variables on `:root` in `src/index.css`, exposed to Tailwind through an `@theme inline` block
-- `motion` for scroll reveals, tab pills and the header, and Lenis for smooth scrolling
-- `simple-icons` for real brand logos (CC0). LinkedIn is no longer in that set, so its mark is drawn by hand in `src/lib/brands.ts`
-- Geist, Geist Mono and Manrope from Google Fonts
+## Configuration
 
-The frontend builds into static `dist/` assets. Production signups also require the Node API in `api/` and a PostgreSQL database; a static-only deployment cannot collect signups. See [hosted waitlist setup](docs/production-waitlist.md). Asset paths are relative (`base: './'`).
+Copy the example only if you need to customize local settings:
 
-## How the page is put together
+```bash
+cp .env.example .env.local
+```
 
-`src/App.tsx` lays the sections out in order. The hero sits in its own framed block, and from the Intro down to the Closing each section is separated by a `Seam` divider.
-
-| Section | File | What it shows |
+| Variable | Used by | Purpose |
 | --- | --- | --- |
-| Header | `components/Nav.tsx` | Glass pill with dropdown menus and the waitlist button. On phones the menu opens as a glass accordion inside the pill and the page stops scrolling behind it |
-| Hero | `components/Hero.tsx` | The headline, phone waitlist form, and the hero animation (`os/HeroScene.tsx`) |
-| Intro | `components/Intro.tsx` | A short statement of the problem Open Swarm solves |
-| Capabilities | `components/Capabilities.tsx` | Three cards, each with its own animation: parallel browsing (`os/BrowserScene.tsx`), apps built on request (`os/AppsScene.tsx`) and a swarm working one problem (`os/SwarmScene.tsx`) |
-| Use cases | `components/UseCases.tsx` | Four teams (sales, operations, recruiting, research), each with its own animated panel in `components/usecases/` |
-| Marketplace | `components/Marketplace.tsx` | Apps that agents use inside Open Swarm, with contextual actions |
-| Closing | `components/Closing.tsx` | One compact illustrated Open Swarm footer |
+| `VITE_PUBLIC_SITE_URL` | Frontend | Public origin for invite links. Defaults to `https://openswarm.com`; localhost overrides are rejected |
+| `VITE_PRIVACY_URL` | Frontend | Approved HTTPS privacy page; the link stays hidden when unset or invalid |
+| `VITE_TERMS_URL` | Frontend | Approved HTTPS terms page; the link stays hidden when unset or invalid |
+| `DATABASE_URL` | Hosted API | Server-only PostgreSQL connection string, including the provider's TLS settings |
+| `TEST_DATABASE_URL` | Test runner | Optional isolated PostgreSQL database for the live integration test |
 
-Shared pieces live in `components/ui/` (reveals, section headings, app icons, the sky background) and `lib/` (links, brand logos, the scroll lock).
+`VITE_` variables are public and embedded at build time. Restart development after changing them, or rebuild for deployment. Keep database credentials in server-only variables. Setting `DATABASE_URL` does not switch the local Vite waitlist to PostgreSQL.
 
-## How the animations work
+For end-to-end local referral checks, open `http://localhost:4310/?ref=<code>` using a code returned by the local API. Generated share links use the configured public origin and do not automatically point back to localhost.
 
-Everything in `components/os/` and `components/usecases/` is drawn with ordinary React components. `os/kit.tsx` holds the building blocks, measured from the team's launch videos: the pink and lilac desktop canvas, the dock, agent cards and their step rows, the voice pill, browser windows, app tiles, the app launcher and an animated cursor.
+## Waitlist and referrals
 
-A few rules keep the scenes cheap and predictable:
+| Endpoint | Request | Behavior |
+| --- | --- | --- |
+| `POST /api/waitlist` | JSON with `phone`, optional `source`, and optional `referralCode` | Save a new signup or return the existing signup's referral progress |
+| `GET /api/waitlist/referral?code=<code>` | A valid share code | Return the current referral count, goal, and priority eligibility |
 
-- **One clock per scene.** `useTimeline(loop, ref, rest)` returns the current time `t` in seconds and loops it. Every scene is a pure function of `t`, so any frame can be reproduced exactly.
-- **It only runs when you can see it.** The clock is driven by `requestAnimationFrame`, updates about 30 times a second, and stops completely while the scene is off screen.
-- **Reduced motion is respected.** With the system setting on, each scene holds still on its `rest` frame, a moment picked because the scene is full and easy to read (the hero rests with all three agents at work, the use case panels on their finished result).
-- **Scenes are designed at a fixed size.** `Stage` lays a scene out once (1280 by 731 for the hero, 520 by 325 for the capability cards) and scales it to fit its container, so it looks the same from a phone to a large monitor.
-- **The hero has a phone camera.** When the hero frame is narrower than 640 px (a viewport under roughly 720 px, once the page padding is counted), the whole stage would be too small to read, so `Stage` is given a moving `view` rectangle instead. The frame switches to 4:5 and pans and zooms to follow the action, from the voice pill to each agent card, the launcher and the Daily Brief.
+The form normalizes country-selected numbers to E.164 before submission. The API also validates numbers and deduplicates equivalent formats. A new signup returns HTTP 201; an existing signup returns HTTP 200 without changing its original referral attribution. Success responses contain referral metadata, never phone numbers.
 
-To add a scene, copy one of the capability scenes, keep its `Stage` and `useTimeline` setup, and describe each element's position and opacity as a function of `t` using the timing helpers at the top of `kit.tsx` (`seg`, `ep`, `inOut`, `typed`, `lerp`, `rise`, `popIn`), plus `path` for moving a point, such as the cursor, along keyframes. Then register it in `os/Harness.tsx` so you can preview it on its own.
+Each signup receives a random share code. Only new, unique signups attributed to that code count toward the three-referral goal. Repeated submissions and self-referrals do not increase the count. The browser saves share codes for recovery and attribution, not phone numbers.
 
-## Previewing one animation at a time
+Local writes are serialized and saved atomically within one server process. Hosted writes use PostgreSQL transactions and uniqueness constraints. The hosted API returns a generic HTTP 503 if storage is unavailable and never falls back to the local JSON file.
 
-In development only, you can open any scene or use case panel on a blank page. Production builds strip this out entirely.
+See [referral behavior](docs/referral-backend.md), [phone input](docs/phone-input.md), and [hosted database setup](docs/production-waitlist.md) for implementation details.
 
-| URL | Shows |
-| --- | --- |
-| `/?scene=hero` | The hero animation |
-| `/?scene=browser`, `apps`, `swarm` | The three capability animations |
-| `/?scene=uc-sales`, `uc-ops`, `uc-recruiting`, `uc-research` | The four use case panels |
-| `/?scene=kit` | A sheet of the kit's components |
+## Deployment
 
-Add `&t=4.5` to freeze the clock at 4.5 seconds, which is useful for screenshots, and `&w=390` to render the scene at a set width, for example to check the hero's phone camera. The `t` parameter also freezes the scenes on the full page, but again only in development.
+Deploy the **repository root**, including `api/`, `server/`, and dependencies. Uploading only `dist/` serves the page but omits the signup API.
 
-## Deploying a preview
+The included hosted entry points target Vercel's Node runtime. Before collecting hosted signups:
+
+1. Configure a PostgreSQL database and deliberately apply [sql/001_waitlist.sql](sql/001_waitlist.sql).
+2. Set the hosting project's server-only `DATABASE_URL` and the frontend variables above.
+3. Build and deploy the frontend together with both API routes.
+4. Verify signup, duplicate handling, an invited signup, and referral progress against the deployed endpoints.
+
+Follow [hosted waitlist setup](docs/production-waitlist.md) for migration commands and database access requirements. Deployment does not automatically migrate the database or import local `.data/` records.
+
+### Dedicated preview project
+
+Prepare a complete preview package locally:
 
 ```bash
 sh scripts/deploy-preview.sh --prepare-only my-preview-project review
 ```
 
-This prepares a private, complete source package under `.preview/`, including the waitlist API. It does not contact a hosting account or deploy. After configuring the intended dedicated preview project's PostgreSQL connection and applying the migration, deploy with an explicit project name:
+This requires Python 3 and stages the source under `.preview/` without contacting a hosting account. It excludes local signup data and environment files.
+
+After configuring the intended preview project's database and authenticating the Vercel CLI:
 
 ```bash
 sh scripts/deploy-preview.sh my-preview-project review
 ```
 
-The script requires an authenticated Vercel CLI, checks the target's `DATABASE_URL`, and verifies both API functions in the build before publishing. Previews are marked `noindex`. See [complete preview deployment](docs/deploy-preview.md); use [hosted waitlist setup](docs/production-waitlist.md) for the public site.
+The script checks for `DATABASE_URL`, builds the project, verifies both Node API function bundles, and deploys to the **Production environment of the named preview project**. It applies `noindex`, so use a dedicated preview project. See [preview deployment](docs/deploy-preview.md) for scope selection and prerequisites.
 
-## Design and copy rules
+## Project structure
 
-- Keep the interface black and white. Colour belongs in backgrounds and imagery. The deliberate exceptions are the blue `text-sky` labels (the eyebrows above section headings and the Intro link), and EF's purple on the "Backed by" badge.
-- The only orange the site chooses for itself is on the Open Swarm octopus and the EF wordmark. Third-party logos keep their own brand colours, and some of those are orange (Reddit, Hacker News, Product Hunt, HubSpot, Zapier). Don't add orange anywhere else.
-- Any third-party tool or integration uses its real logo from `src/lib/brands.ts`, never a generic glyph or initials. Open Swarm's own agents and apps that have no logo may use a line glyph.
-- No em dashes anywhere in the copy. Write plain sentences.
-- Every animation needs a text description so screen readers get the same story: the `label` on its `Stage` for scenes in `os/`, or the `label` on `PanelRoot` for use case panels. `Stage` does not require one, so it is easy to forget.
-- Check the page at phone width after every change. Nothing should scroll sideways.
-
-## Before launch
-
-Some content on the page is a placeholder or a draft and needs the team's sign off:
-
-- [ ] Problem Validator is shown with 6 agents, but its sources differ between places: the animation searches r/startups, r/SaaS, X, Hacker News, Product Hunt and LinkedIn, while the Marketplace card says Reddit, X, Hacker News and review sites. Confirm the count and the sources, then make the Marketplace line, the card logos and the animation's label match.
-- [ ] Text Agents, Call Agents and Verbal Hotkeys are listed under "Coming soon" in the Marketplace (names and icons only). Confirm they should be announced. Their draft one-line descriptions in `Marketplace.tsx` are not shown on the page.
-- [ ] The quotes in the Problem Validator animation, credited to r/startups, X and Hacker News, and its "38 found" count are illustrative.
-- [ ] The Berkeley restaurants and ratings in the browsing animation, and the search results in the hero, are illustrative.
-- [ ] The Daily Brief in the hero and apps animations shows a fixed date, "Saturday, Sep 26", and the research panel's papers are dated September with the title "Browser agents, September brief".
-- [ ] The use case headings and descriptions are new copy, and the prompts and panel data (companies, candidates, amounts) are invented.
-- [ ] Deploy the complete project with the API and migrated database to the real domain. A plain `dist/` upload omits signup storage, and the preview script deliberately marks its target `noindex`.
-- [ ] Provide approved, working Privacy and Terms pages using `VITE_PRIVACY_URL` and `VITE_TERMS_URL`. The previous URLs returned 404; unconfigured links are hidden.
-- [ ] Connect the intended SMS service before sending the promised early-access notifications. No SMS is currently sent.
-
-## Project layout
-
-```
+```text
+api/                        Hosted signup and referral handlers
+server/                     Local and PostgreSQL stores, middleware, and tests
+sql/001_waitlist.sql         PostgreSQL schema migration
 src/
-  App.tsx                page order and smooth scrolling
-  main.tsx               entry point, plus the dev-only scene harness
-  index.css              Tailwind setup, colour and type tokens
+  App.tsx                   Page composition and navigation behavior
+  main.tsx                  Entry point and development-only scene viewer
+  index.css                 Global styles, typography, and design tokens
   components/
-    Nav.tsx ... Closing.tsx   one file per section
-    os/                  product animations and the kit they are built from
-    usecases/            the four use case panels
-    ui/                  shared pieces
-  lib/                   links, brand logos, scroll lock, helpers
-public/                  favicon and logo
-scripts/deploy-preview.sh
-docs/preview.jpg         the screenshot at the top of this file
+    Nav.tsx ... Closing.tsx  Landing-page sections
+    os/                     Product scenes and animation primitives
+    usecases/               Sales, operations, recruiting, and research panels
+    ui/                     Shared UI, waitlist form, and referral dialog
+  lib/                      Phone/referral helpers, links, brands, and tracking
+public/                     Favicon, illustrations, logos, and icon licenses
+scripts/deploy-preview.sh   Complete preview packaging and deployment
+docs/                       Setup guides, design notes, and verification records
 ```
 
-## Local phone waitlist
+The frontend uses React 19, TypeScript 6, Vite 8, Tailwind CSS 4, Motion, and Lenis. Phone parsing uses `libphonenumber-js`; hosted storage uses `pg`. Brand marks come from `simple-icons` and the supplied assets. Typography uses Geist, Geist Mono, and Manrope.
 
-The waitlist runs locally with `npm run dev` and `npm run preview`. Forms submit to
-`POST /api/waitlist` with JSON `{ "phone": "+12025550123", "source": "hero" }`.
-US numbers accept ten digits, an optional leading 1, and familiar punctuation.
-The country selector accepts other national formats; pasted +country-code numbers override the selection. Shared validation normalizes to E.164,
-saves each number once, and returns success only after saving it.
+### Editing product animations
 
-Signups are stored in `.data/waitlist.json` with the phone number, form source, and
-signup time. This folder is ignored by Git, blocked from browser file requests,
-and is never part of the static build.
-Writes are serialized and atomic within one running server process. Run only one
-dev or preview server at a time against this file. Existing invalid data causes
-requests to fail safely without overwriting the file. No text messages are sent.
+The scenes in `src/components/os/` and `src/components/usecases/` use a shared timeline from [kit.tsx](src/components/os/kit.tsx). Scenes render from time `t`, pause when off screen, and hold a representative frame when reduced motion is enabled. `Stage` scales a fixed design canvas, with a moving camera for the hero on narrow screens.
 
-Local development remains a prototype. The production API and PostgreSQL migration
-are now prepared in `api/`, `server/production-waitlist.ts`, and `sql/001_waitlist.sql`.
-They have not been connected or deployed. A static deployment of `dist/` does **not**
-include the waitlist API. Follow [hosted setup](docs/production-waitlist.md) before launch. Keep local signup data private and remove test entries when
-they are no longer needed.
+During `npm run dev`, use these query strings to isolate scenes:
 
-On Node 24, run the local API tests with:
+| Query | Scene |
+| --- | --- |
+| `?scene=hero` | Hero product demonstration |
+| `?scene=browser`, `?scene=apps`, `?scene=swarm` | Capability demonstrations |
+| `?scene=uc-sales`, `?scene=uc-ops`, `?scene=uc-recruiting`, `?scene=uc-research` | Team use-case panels |
+| `?scene=kit` | Animation component sheet |
 
-```bash
-node --experimental-strip-types --test server/*.test.ts
-```
+Append `&t=4.5` to freeze a frame and `&w=390` to set the viewer width, for example `http://localhost:4310/?scene=hero&t=4.5&w=390`. The `t` parameter also works on the full page in development. Production builds omit the scene viewer and time override.
 
-## Current UI and claims
+To add a scene, reuse `Stage`, `useTimeline`, and the timing helpers from `kit.tsx`, then register it in [Harness.tsx](src/components/os/Harness.tsx).
 
-The hero includes the free offer, the supplied 6,327-person proof count, and a phone signup.
-Confirmed signup opens an invite card: three unique friend signups earn priority early access.
-The public invite origin defaults to https://openswarm.com. No launch date is claimed.
-The unsupported numerical benchmark comparison and 10,000+ integration claim were removed.
-See [latest visual decisions and QA](docs/sky-and-signup-refinement.md).
-See [functional verification and launch status](docs/functionality-audit.md) for verified flows and outstanding service connections.
+### Design and copy conventions
+
+- Keep interface controls primarily black and white, with color in imagery and backgrounds. Preserve the established blue section labels and EF purple badge.
+- Reserve first-party orange for the Open Swarm octopus and EF wordmark. Third-party logos retain their original colors.
+- Use real third-party logos from [brands.ts](src/lib/brands.ts). Open Swarm agents and apps may use line icons.
+- Write plain sentences without em dashes in site copy.
+- Give each animation a descriptive `Stage` or `PanelRoot` label and preserve reduced-motion behavior.
+- Check phone widths, keyboard navigation, and horizontal overflow after UI changes.
+
+### Tracking
+
+[x-pixel.ts](src/lib/x-pixel.ts) configures the X advertising pixel and tracks clicks on `.dmg` links. It is disabled in Vite development and on local hostnames; it runs in hosted production builds, including hosted previews. Pixel and event IDs are defined in that file.
+
+## Verification and launch notes
+
+Run the build, lint, and test commands above before shipping code changes. Checks on September 30, 2026 passed the build and 27 tests, with one live PostgreSQL integration test skipped. Lint reported existing warnings, and Vite reported a large-bundle advisory.
+
+To run the live database test, supply `TEST_DATABASE_URL` through the shell environment or Node's `--env-file=.env.local` option. The plain Node test command does not automatically load Vite environment files. Use an isolated test database with schema-creation permission; the test creates and removes its own temporary schema.
+
+The repository contains the hosted backend implementation. A GitHub push alone does not provision its database or verify a running deployment. See the dated [functionality audit](docs/functionality-audit.md) for recorded browser checks and service setup status.
+
+Items to confirm before a public launch:
+
+- Connect the intended hosting project and migrated database, and verify the hosted signup/referral flow.
+- Configure approved Privacy and Terms pages and the intended notification service. SMS delivery and phone ownership verification need separate implementation.
+- Confirm the hero's supplied 6,327-person waitlist count, which is currently hard-coded.
+- Align Problem Validator's advertised source list with its six-agent demonstration and confirm the three “Coming soon” marketplace items.
+- Review illustrative quotes, restaurants, ratings, companies, candidates, amounts, and fixed dates in the demonstrations.
+
+For visual history and asset provenance, see [latest visual decisions](docs/sky-and-signup-refinement.md), [image assets](docs/image-assets.md), and [icon sources](docs/icon-sources.md).
