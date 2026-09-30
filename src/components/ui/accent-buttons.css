@@ -1,0 +1,66 @@
+.anti-metal-button {
+  position: relative;
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 72px 10px 18px;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid #202428;
+  border-radius: 9px;
+  background: #15191d;
+  color: #f9fafb;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 22px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+.anti-metal-button__label { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-width: 0; }
+.anti-metal-button__panel { position: absolute; top: 4px; right: 4px; bottom: 4px; display: flex; width: 35px; align-items: center; justify-content: flex-end; padding-right: 8px; overflow: hidden; border-radius: 5px; background: var(--anti-metal-accent); color: var(--anti-metal-accent-ink); transition: width 200ms cubic-bezier(.2,.75,.2,1); pointer-events: none; }
+.anti-metal-button__panel > svg { flex-shrink: 0; transition: transform 200ms cubic-bezier(.2,.75,.2,1); }
+.anti-metal-button__dots { position: absolute; left: 11px; top: 50%; display: grid; gap: 3px; opacity: 0; transform: translateY(-50%); transition: opacity 140ms ease; }
+.anti-metal-button__dots i { display: block; width: 2px; height: 2px; border-radius: 50%; background: currentColor; }
+.anti-metal-button:focus-visible:not(:disabled) .anti-metal-button__panel { width: 54px; }
+.anti-metal-button:focus-visible:not(:disabled) .anti-metal-button__dots { opacity: .4; }
+.anti-metal-button:focus-visible:not(:disabled) .anti-metal-button__dots i { animation: anti-metal-dot 700ms ease-out 1 both; }
+.anti-metal-button:focus-visible:not(:disabled) .anti-metal-button__dots i:nth-child(2) { animation-delay: 70ms; }
+.anti-metal-button:focus-visible:not(:disabled) .anti-metal-button__dots i:nth-child(3) { animation-delay: 140ms; }
+.anti-metal-button:active:not(:disabled) { background: #0c1014; }
+.anti-metal-button:focus-visible, .button-one:focus-visible { outline: 2px solid #7a9aaf; outline-offset: 3px; }
+.anti-metal-button:disabled, .button-one:disabled { opacity: .5; cursor: not-allowed; }
+
+.button-one { position: relative; display: inline-flex; min-height: 44px; align-items: center; justify-content: center; gap: 10px; padding: 10px 17px; isolation: isolate; overflow: hidden; border: 1px solid #353a40; border-radius: 9px; background: #15191d; color: #f9fafb; font-size: 13px; font-weight: 500; line-height: 22px; cursor: pointer; transition: border-color 160ms ease, background-color 160ms ease; }
+.button-one::before { position: absolute; z-index: -1; left: 18%; right: 18%; bottom: -19px; height: 23px; border-radius: 50%; background: var(--button-one-accent); filter: blur(10px); opacity: .08; content: ''; transition: opacity 180ms ease, transform 180ms ease; pointer-events: none; }
+.button-one__label { display: inline-flex; min-width: 0; align-items: center; justify-content: center; gap: 7px; }
+.button-one__arrow { flex-shrink: 0; transition: transform 180ms ease; }
+.button-one:focus-visible:not(:disabled)::before { opacity: .35; transform: translateY(-3px); }
+.button-one:focus-visible:not(:disabled) .button-one__arrow { transform: translateX(2px); }
+.button-one:active:not(:disabled) { background: #0c1014; }
+
+@media (hover: hover) and (pointer: fine) {
+  .anti-metal-button:hover:not(:disabled) { border-color: #424d56; }
+  .anti-metal-button:hover:not(:disabled) .anti-metal-button__panel { width: 54px; }
+  .anti-metal-button:hover:not(:disabled) .anti-metal-button__panel > svg { transform: translateX(1px); }
+  .anti-metal-button:hover:not(:disabled) .anti-metal-button__dots { opacity: .4; }
+  .anti-metal-button:hover:not(:disabled) .anti-metal-button__dots i { animation: anti-metal-dot 700ms ease-out 1 both; }
+  .anti-metal-button:hover:not(:disabled) .anti-metal-button__dots i:nth-child(2) { animation-delay: 70ms; }
+  .anti-metal-button:hover:not(:disabled) .anti-metal-button__dots i:nth-child(3) { animation-delay: 140ms; }
+  .button-one:hover:not(:disabled) { border-color: #56616b; }
+  .button-one:hover:not(:disabled)::before { opacity: .35; transform: translateY(-3px); }
+  .button-one:hover:not(:disabled) .button-one__arrow { transform: translateX(2px); }
+}
+@keyframes anti-metal-dot { 0%, 100% { opacity: .35; } 45% { opacity: .9; } }
+@media (prefers-reduced-motion: reduce) {
+  .anti-metal-button, .anti-metal-button__panel, .anti-metal-button__panel > svg, .anti-metal-button__dots, .button-one, .button-one::before, .button-one__arrow { transition: none; }
+  .anti-metal-button .anti-metal-button__dots i { animation: none !important; }
+  .anti-metal-button .anti-metal-button__panel > svg, .button-one .button-one__arrow, .button-one::before { transform: none !important; }
+}
+@media (forced-colors: active) {
+  .anti-metal-button, .button-one { color: ButtonText; background: ButtonFace; border-color: ButtonText; }
+  .anti-metal-button__panel { color: ButtonText; background: ButtonFace; border: 1px solid ButtonText; }
+  .button-one::before { display: none; }
+  .anti-metal-button:focus-visible, .button-one:focus-visible { outline-color: Highlight; }
+}

@@ -1,0 +1,321 @@
+@import "tailwindcss";
+
+/*
+  Design tokens. Every color and font on the page reads from these variables.
+  After Alex's review (Sep 26): black and white base, Geist for type (crisp sans, no
+  serif italics), orange only on the octopus and EF's own wordmark, color elsewhere
+  comes from real things (app icons, EF's purple), never from a site accent.
+*/
+:root {
+  --bg: #ffffff;
+  --bg-alt: #f7f7f7;
+  --surface: #ffffff;
+  --ink: #0a0a0a;
+  --ink-2: #555555;
+  --ink-3: #8f8f8f;
+  --ink-dim: #d9d9d9;
+  --line: rgba(0, 0, 0, 0.09);
+  --line-strong: rgba(0, 0, 0, 0.16);
+  --accent: #0a0a0a;
+  --accent-ink: #0a0a0a;
+  --accent-soft: #f2f2f2;
+  --hl: #0a0a0a;
+  --btn: #0a0a0a;
+  --btn-ink: #ffffff;
+  --octo: #ff6b3d;
+  --ef-purple: #6300dd;
+  --ef-orange: #ff7448;
+  --sky: #1d74d8;
+  --f-display: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --f-body: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --f-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --f-wordmark: "Manrope", "Geist", ui-sans-serif, sans-serif;
+  --display-weight: 500;
+  --display-tracking: -0.035em;
+  --radius-card: 8px;
+  /* Supplied GradientText palette; only that reusable component consumes these. */
+  --color-1: 330 100% 40%;
+  --color-2: 140 100% 55%;
+  --color-3: 210 100% 30%;
+  --color-4: 60 100% 70%;
+  --color-5: 295 100% 45%;
+  --brand: 50 100% 50%;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-alt: var(--bg-alt);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-ink-dim: var(--ink-dim);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-btn: var(--btn);
+  --color-btn-ink: var(--btn-ink);
+  --color-sky: var(--sky);
+  --color-color-1: hsl(var(--color-1));
+  --color-color-2: hsl(var(--color-2));
+  --color-color-3: hsl(var(--color-3));
+  --color-color-4: hsl(var(--color-4));
+  --color-color-5: hsl(var(--color-5));
+  --font-display: var(--f-display);
+  --font-sans: var(--f-body);
+  --font-mono: var(--f-mono);
+  --radius-card: var(--radius-card);
+}
+
+html {
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  overflow-x: hidden;
+}
+
+::selection {
+  background: #0a0a0a;
+  color: #fff;
+}
+
+.display {
+  font-family: var(--f-display);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+/* Second half of a two-part heading, the way Aside and Linear do it: same face, softer ink. */
+.muted-part {
+  color: var(--ink-3);
+}
+
+.hairline {
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+/* Frosted, see-through surface for the nav and the product window. */
+.glass {
+  background: rgba(255, 255, 255, 0.62);
+  -webkit-backdrop-filter: saturate(160%) blur(18px);
+  backdrop-filter: saturate(160%) blur(18px);
+}
+
+/* Compact waitlist controls: quiet glass, restrained corners, a fine moving metal rim. */
+.liquid-glass-input {
+  border: 1px solid rgba(100, 129, 147, .36);
+  background: linear-gradient(165deg, rgba(255,255,255,.98), rgba(242,249,253,.89) 52%, rgba(223,239,249,.86));
+  box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 rgba(153,186,207,.16), 0 2px 5px rgba(34,60,75,.10);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  transition: border-color 180ms, box-shadow 180ms, background-color 180ms;
+}
+.liquid-glass-input:focus-within {
+  border-color: #7b9aaf;
+  box-shadow: inset 0 1px 0 #fff, 0 0 0 3px rgba(255,255,255,.48), 0 3px 9px rgba(34,60,75,.09);
+}
+.phone-country { background: linear-gradient(180deg,rgba(255,255,255,.7),rgba(210,228,240,.46)); box-shadow: inset 0 0 0 1px rgba(125,155,174,.10); transition: background-color 140ms ease, box-shadow 140ms ease; }
+.phone-country:hover { background-color: rgba(202,223,237,.45); }
+.phone-country:has(select:focus-visible) { outline: 2px solid #6b859b; outline-offset: 1px; }
+.phone-field-divider { background: linear-gradient(transparent,rgba(114,145,165,.30),transparent); }
+.phone-focus-line { background: linear-gradient(90deg,transparent,#83afca 24%,#467696 50%,#83afca 76%,transparent); opacity: 0; transform: scaleX(.35); transition: transform 220ms cubic-bezier(.2,.75,.2,1),opacity 160ms ease; }
+.liquid-glass-input:focus-within .phone-focus-line { opacity: .8; transform: scaleX(1); }
+.liquid-glass-input[data-disabled] { opacity: .65; }
+.liquid-glass-input:has([aria-invalid="true"]) { border-color: #9f2424; }
+.liquid-glass-input:has([aria-invalid="true"]) .phone-focus-line { background: linear-gradient(90deg,transparent,#9f2424,transparent); }
+@media (prefers-reduced-motion: reduce) { .liquid-glass-input, .phone-country, .phone-focus-line { transition: none; } }
+/* The rim keeps flowing at rest; only the tiny gradient surface repaints. */
+@property --liquid-metal-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 35deg;
+}
+.liquid-metal-control {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 0;
+  border-radius: 9px;
+  background: conic-gradient(from var(--liquid-metal-angle) at 48% 50%, #dddde3 0deg, #777784 38deg, #282833 78deg, #fefefe 120deg, #dccfaa 128deg, #7a7a85 136deg, #3b3b46 175deg, #c4c4d0 230deg, #ffffff 270deg, #b6c7d2 279deg, #dfbd80 283deg, #464653 291deg, #e9e9ef 338deg, #dddde3 360deg);
+  box-shadow: 0 2px 5px rgba(0,0,0,.14);
+  text-shadow: 0 1px 2px #000;
+  transition: transform 160ms, box-shadow 180ms, filter 180ms;
+  animation: liquid-metal-flow 4.8s linear infinite;
+}
+.liquid-metal-control::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  inset: 1px;
+  border-radius: inherit;
+  background: linear-gradient(180deg, #262627 0%, #151516 42%, #080809 82%, #030304 100%);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,.12), inset 0 -2px 2px #000;
+}
+.liquid-metal-control::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  inset: 1px;
+  border-radius: inherit;
+  background: linear-gradient(112deg, transparent 20%, rgba(255,255,255,.04) 32%, rgba(255,255,255,.24) 46%, rgba(255,255,255,.04) 60%, transparent 72%);
+  opacity: .35;
+  transform: translate3d(-115%, 0, 0);
+  animation: liquid-metal-sheen 3.6s cubic-bezier(.35,0,.65,1) infinite;
+  transition: opacity 180ms;
+}
+@keyframes liquid-metal-flow {
+  to { --liquid-metal-angle: 395deg; }
+}
+@keyframes liquid-metal-sheen {
+  to { transform: translate3d(115%, 0, 0); }
+}
+.liquid-metal-control > * { position: relative; z-index: 1; }
+.liquid-metal-control .liquid-action-arrow {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  transition: transform 180ms ease;
+}
+@media (hover: hover) {
+  .liquid-metal-control:hover:not(:disabled) {
+    transform: translateY(-1px);
+    filter: brightness(1.12);
+    box-shadow: 0 4px 9px rgba(0,0,0,.17);
+  }
+  .liquid-metal-control:hover::after { opacity: .55; }
+  .liquid-metal-control:hover .liquid-action-arrow { transform: translateX(2px); }
+}
+.liquid-metal-control:active:not(:disabled) { transform: translateY(1px) scale(.98); }
+.liquid-metal-control:disabled,
+.liquid-metal-control:disabled::after { animation-play-state: paused; }
+.liquid-metal-control:disabled::after { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .liquid-metal-control,
+  .liquid-metal-control::after { animation: none; }
+  .liquid-metal-control::after { transform: none; opacity: .16; }
+}
+.waitlist-success {
+  color: #153951;
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: 9px;
+  background: rgba(255,255,255,.82);
+  box-shadow: 0 1px 4px rgba(22,50,70,.08);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+.liquid-metal-control:focus-visible,
+.waitlist-link:focus-visible,
+.waitlist button:focus-visible,
+.waitlist a:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+
+/* On a phone the scrolled nav covers body copy, not wide margins, so it frosts harder there
+   and the text under it washes out instead of reading through the wordmark. */
+@media (max-width: 767.98px) {
+  .glass.nav-glass {
+    background: rgba(255, 255, 255, 0.84);
+    -webkit-backdrop-filter: saturate(170%) blur(28px);
+    backdrop-filter: saturate(170%) blur(28px);
+  }
+}
+
+/* The open phone menu: frosted hard enough that dark product shots behind it turn into
+   soft colour instead of grey smudges, while still reading as glass. */
+.glass-strong {
+  background: rgba(255, 255, 255, 0.84);
+  -webkit-backdrop-filter: saturate(180%) blur(36px);
+  backdrop-filter: saturate(180%) blur(36px);
+}
+
+.mono {
+  font-family: var(--f-mono);
+  letter-spacing: 0;
+}
+
+/* No paragraph ends on one stranded word. In the base layer, so a text-balance utility still wins. */
+@layer base {
+  p {
+    text-wrap: pretty;
+  }
+}
+
+
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+
+/* Rolling button letters (RollText). */
+.roll {
+  display: inline-flex;
+  overflow: hidden;
+  line-height: 1.3;
+}
+.roll-ch {
+  position: relative;
+  display: inline-block;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.roll-ch-2 {
+  position: absolute;
+  left: 0;
+  top: 100%;
+}
+a:hover .roll-ch,
+button:hover .roll-ch,
+a:focus-visible .roll-ch {
+  transform: translateY(-100%);
+}
+
+/* The hero mascot lifts off the window edge and lands again. */
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* The app-icon wall drifts sideways; each row holds its icons twice, so -50% loops cleanly. */
+@keyframes drift {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}

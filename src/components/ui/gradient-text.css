@@ -1,0 +1,59 @@
+/* Four moving color fields, adapted from the supplied GradientText reference.
+   Clip to the actual text instead of placing a white rectangle over the page. */
+.gradient-text {
+  color: var(--ink);
+  --gradient-color-1: hsl(var(--color-1));
+  --gradient-color-2: hsl(var(--color-2));
+  --gradient-color-3: hsl(var(--color-3));
+  --gradient-color-4: hsl(var(--color-4));
+}
+
+/* These darker colors keep the marketplace heading readable on its pale surface. */
+.gradient-text--swarm {
+  --gradient-color-1: #a13d29;
+  --gradient-color-2: #126466;
+  --gradient-color-3: #245ba2;
+  --gradient-color-4: #794291;
+}
+
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  .gradient-text {
+    display: inline;
+    background-image:
+      radial-gradient(ellipse at center, var(--gradient-color-1) 0%, transparent 60%),
+      radial-gradient(ellipse at center, var(--gradient-color-2) 0%, transparent 62%),
+      radial-gradient(ellipse at center, var(--gradient-color-4) 0%, transparent 66%),
+      linear-gradient(105deg, var(--gradient-color-3), var(--gradient-color-1), var(--gradient-color-3));
+    background-size: 140% 240%, 160% 260%, 150% 240%, 200% 100%;
+    background-position: -40% 30%, 130% 20%, 70% 160%, 0% 50%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    animation: gradient-text-flow 9s ease-in-out infinite alternate;
+    animation-play-state: paused;
+  }
+
+  .gradient-text[data-active="true"] { animation-play-state: running; }
+}
+
+@keyframes gradient-text-flow {
+  0% { background-position: -40% 30%, 130% 20%, 70% 160%, 0% 50%; }
+  45% { background-position: 80% 60%, -20% 80%, 130% 0%, 70% 50%; }
+  100% { background-position: 140% 10%, 65% -20%, -20% 100%, 100% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gradient-text { animation: none; }
+}
+
+@media (forced-colors: active) {
+  .gradient-text {
+    background: none;
+    color: CanvasText;
+    -webkit-text-fill-color: CanvasText;
+    animation: none;
+  }
+}
