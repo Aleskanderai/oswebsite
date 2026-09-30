@@ -1,30 +1,43 @@
 # Demo glass and application artwork
 
-September 30, 2026.
+September 30, 2026 — updated after the email and material refinement pass.
 
-The refinement follows the supplied sidebar and app-launcher screenshots: retain the existing scene layout and animation, give the navigation clearer separation from the twilight wallpaper, and use recognizable application artwork.
+The supplied Open Swarm screenshots remain the primary reference. Keep the existing desktop, agent layout, real application artwork and animation story. Refine the material and feedback without adding new sections, shaders or decorative interactions to the illustrated scenes.
 
-| Detail | Reference and implementation |
+| Detail | Current implementation |
 | --- | --- |
-| Sidebar material | User request for slightly lighter glass. Replaced the nearly opaque mauve fill with a cool translucent surface, backdrop blur, a fine bright edge, and a restrained shadow. |
-| Launcher surface | Existing Open Swarm panel hierarchy and [Apple's material guidance](https://developer.apple.com/documentation/TechnologyOverviews/liquid-glass). The panel remains dark enough for labels, with a lighter tint and one blur layer instead of two dark overlays. |
-| Application identity | User's actual launcher screenshot and original installed application resources. Apple icons and Open Swarm app artwork are displayed with consistent optical bounds. Source details are in [app-assets.md](app-assets.md). |
-| Small details | Stronger search-field contrast, consistent label baselines, subtle image shadows, and the same Daily Brief artwork in the launcher, sidebar, and window-to-icon animation. |
-| Motion scope | The supplied [Gabriel profile](https://x.com/gabriell_lab), including its [native-menu feedback example](https://x.com/gabriell_lab/status/2104946256950813044), supports restrained, purposeful feedback. Existing timing, curved flight path, pointer targets, and scene cameras were retained. |
+| Sidebar | 48px translucent blue-gray glass, down from 56px, with a 4px inset that preserves its center. Original app artwork is 32px inside the existing 38px animation slots. Thin lit edges and a soft lower shadow replace the pale block-like face. |
+| Wallpaper | The same twilight artwork, with a brighter, less saturated treatment and a light blue veil. The dotted canvas remains subtle. |
+| Agent panels and launcher | A coordinated blue-gray glass palette, thin highlights, restrained backdrop blur and recessed translucent composers. Labels stay on a sharp foreground. |
+| Real controls | Navigation and team tabs use a damped moving highlight and a small press response. Tab changes have short contained transitions and explicit reduced-motion behavior. |
+| Loading and signup | Email replaces the country/phone control. Joining keeps the button's width stable, locks repeated submissions, announces progress and shows success only after the API confirms the save. The existing referral confirmation stays intact. |
+| Application identity | Original Apple and Open Swarm artwork remains consistent across the dock, launcher and small demos. See [asset sources](app-assets.md). |
 
-Refero's live searches returned `NO_SUBSCRIPTION`. Its bundled craft guidance and the supplied product references were used for the review. Higgsfield generated only the illustration for the demo-created Daily Brief app; official Apple and existing Open Swarm icons were sourced from the originals.
+## Reference decisions
 
-The sidebar retains its 56px width, 38px application slots, and 10px gaps. The hero retains its twelve-slot launcher and first-slot Daily Brief target. The smaller app-building scene retains its five existing slots and sixth-slot landing target. No new animation dependencies or interaction handlers were added.
+The six supplied component snippets reduce to four distinct concepts: layered glass, a spring card, a moving glass segment and repeated shader-wave examples. Adapt the layered material, fine rim and restrained press response. Do not introduce the snippets' large distortion, hover padding changes, continuous WebGL rendering or additional dependencies. Thinking dots reuse the existing scene clock, so they still pause offscreen and freeze for reduced motion.
+
+All four Loom recordings were reviewed using sampled actual video frames, with denser samples around interactions:
+
+- [Mistral](https://www.loom.com/share/c23f081e84cb406e91aa65ac6d13d2d7): localized edge and card feedback inside a stable grid.
+- [heyclicky](https://www.loom.com/share/9e5172cecbf44720b5623e786158d366): fine luminous rims, small native-window components and contained progress indicators.
+- [Nous / Hermes](https://www.loom.com/share/e4191f24a6154c50bf0d036cf3b89ed1): anchored navigation flyouts and compact trigger feedback.
+- [Aside](https://www.loom.com/share/0952fc82bbc8482b9971130588200ecc): a light canvas, legible authentic app marks and compact task status rows.
+
+These are material and interaction references, not copied layouts. Samples establish state changes but not exact easing curves. The supplied [Gabriel profile](https://x.com/gabriell_lab) reinforces purposeful feedback and physical continuity; the existing curved app handoff and scene timing remain unchanged.
+
+Refero's live library returned `NO_SUBSCRIPTION`. Its installed design guidance, the user screenshots and supplied references informed the pass. [Apple's material guidance](https://developer.apple.com/documentation/TechnologyOverviews/liquid-glass) informed the earlier glass layering. No new media generation was needed for this pass.
+
+The hero retains its twelve-slot launcher and first-slot Daily Brief target. The smaller app-building scene retains its five existing apps and sixth-slot landing target. The dock's center and vertical slot geometry preserve the cursor choreography.
 
 ## Verification
 
-- Production TypeScript/Vite build passes; Vite retains its existing bundle-size advisory.
-- Scoped lint reports only the existing animation and shared-export warnings.
-- Safari visual checks cover the desktop launcher, the phone camera at 390px, and the smaller app-building scene.
-- Both standard and WebKit-prefixed backdrop filters are supported. Opaque fallbacks preserve legibility without blur or when reduced transparency is requested.
-- README screenshots now show the updated demo and original app artwork.
-
-To inspect the frozen scenes locally:
+- TypeScript/Vite production build passes; the existing bundle-size advisory remains. Removing phone parsing from the browser reduces the main JS bundle from approximately 785 KB to 665 KB before gzip.
+- Lint passes with the existing animation/shared-export warnings.
+- Safari checks cover the email field, inline invalid-input state, desktop/mobile success dialog, another-email recovery, and the compact mobile menu. Chrome verifies all four team tabs and keyboard navigation. Safari background rendering paused Motion transitions during the iframe check; Chrome completed them correctly.
+- README desktop/mobile demo screenshots are refreshed from the rendered components. Both are frozen at 11.8 seconds for a like-for-like comparison.
+- Standard and WebKit-prefixed backdrop filters are included; opaque fallbacks preserve legibility without blur or when reduced transparency is requested.
+- Email persistence, duplicates, mixed legacy referrals and SQL migration checks are documented in [production waitlist](production-waitlist.md). Browser signup checks used an isolated temporary store, never the workspace's real signup data.
 
 ```text
 http://localhost:4310/?scene=hero&t=11.8&w=1280

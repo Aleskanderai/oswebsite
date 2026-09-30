@@ -245,7 +245,7 @@ function Stream({ t, items, working, thinkFrom, custom }: { t: number; items: It
     if (it.k === 'step') body = <StepLine s={it} t={t} />
     else if (it.k === 'prompt')
       body = (
-        <div className="ml-auto w-fit whitespace-nowrap rounded-[10px] bg-[#2d272d] px-[12px] py-[8px] text-[13.5px] leading-[20px] text-white">
+        <div className="ml-auto w-fit whitespace-nowrap rounded-[10px] demo-inset px-[12px] py-[8px] text-[13.5px] leading-[20px] text-white">
           {it.lines.map((l, j) => (j ? [<br key={j} />, l] : l))}
         </div>
       )
@@ -277,7 +277,7 @@ function Stream({ t, items, working, thinkFrom, custom }: { t: number; items: It
 
 function Composer({ done }: { done: number }) {
   return (
-    <div className="absolute inset-x-[10px] bottom-[10px] h-[62px] rounded-[10px] bg-[#2d272d] px-[12px] pt-[9px]">
+    <div className="absolute inset-x-[10px] bottom-[10px] h-[62px] rounded-[10px] demo-inset px-[12px] pt-[9px]">
       <div className="relative h-[19px] whitespace-nowrap text-[13px] leading-[19px] text-[#cfc6cf]">
         {done < 1 && (
           <span className="absolute left-0 top-0" style={{ opacity: 1 - done }}>
@@ -322,7 +322,7 @@ function Card({ x, title, appear, done = 0, covered = false, children }: { x: nu
         <span className="h-[8px] w-[8px] rounded-full bg-black/15" />
         <span className="h-[8px] w-[8px] rounded-full bg-black/15" />
         <span className="h-[8px] w-[8px] rounded-full bg-black/15" />
-        <span className="ml-[4px] flex h-[28px] items-center gap-[8px] whitespace-nowrap rounded-full bg-[#3f353f] pl-[12px] pr-[10px] text-[13.5px] font-semibold text-white shadow-[0_4px_12px_-6px_rgba(40,20,40,0.6)]">
+        <span className="ml-[4px] flex h-[28px] items-center gap-[8px] whitespace-nowrap demo-title rounded-full pl-[12px] pr-[10px] text-[13.5px] font-semibold text-white shadow-[0_4px_12px_-6px_rgba(40,20,40,0.6)]">
           {title}
           <span className="relative h-[18px]" style={{ width: lerp(50, 56, done) }}>
             {done < 1 && (
@@ -341,7 +341,7 @@ function Card({ x, title, appear, done = 0, covered = false, children }: { x: nu
           </span>
         </span>
       </div>
-      <div className="relative overflow-hidden rounded-[14px] bg-[#3c353c] shadow-[0_24px_50px_-26px_rgba(50,20,60,0.7),inset_0_0_0_1px_rgba(255,255,255,0.05)]" style={{ height: CH }}>
+      <div className="relative overflow-hidden rounded-[14px] demo-panel" style={{ height: CH }}>
         {!covered && (
           <>
             <div className="absolute inset-x-0 top-0" style={{ height: LIST_H }}>

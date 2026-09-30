@@ -29,18 +29,19 @@ test('SQL signup commits parameterized canonical values before returning referra
   const inviter = 'b'.repeat(32)
   const fixture = scriptedDatabase([
     { contains: 'BEGIN ISOLATION LEVEL READ COMMITTED' },
-    { contains: 'ON CONFLICT (phone) DO NOTHING', rows: [{ referral_code: code }] },
-    { contains: 'COUNT(invitee.phone)', rows: [{ referral_code: code, count: 0 }] },
+    { contains: 'ON CONFLICT (email) DO NOTHING', rows: [{ referral_code: code }] },
+    { contains: 'COUNT(invitee.referral_code)', rows: [{ referral_code: code, count: 0 }] },
     { contains: 'COMMIT' },
   ])
   const store = createPostgresWaitlistStore(fixture.database, () => code)
   const source = "hero'; DROP TABLE waitlist_signups; --"
-  assert.deepEqual(await store.add('+12025550123', source, inviter), {
+  assert.deepEqual(await store.add(' Alex@Example.com ', source, inviter), {
     added: true, referral: { code, count: 0, goal: 3, priorityAccess: false },
   })
-  assert.deepEqual(fixture.calls[1].values, ['+12025550123', source, code, inviter])
+  assert.deepEqual(fixture.calls[1].values, ['alex@example.com', source, code, inviter])
   assert.ok(!fixture.calls[1].text.includes(source))
-  assert.ok(!fixture.calls[1].text.includes('+12025550123'))
+  assert.ok(!fixture.calls[1].text.includes('alex@example.com'))
+  assert.ok(fixture.calls[1].text.includes('inviter.email IS DISTINCT FROM $1'))
   assert.equal(fixture.releases(), 1)
   assert.equal(fixture.remaining(), 0)
 })
@@ -49,13 +50,13 @@ test('a concurrent duplicate reads the committed winner without changing its cod
   const code = 'a'.repeat(32)
   const fixture = scriptedDatabase([
     { contains: 'BEGIN ISOLATION LEVEL READ COMMITTED' },
-    { contains: 'ON CONFLICT (phone) DO NOTHING', rows: [] },
-    { contains: 'SELECT referral_code FROM waitlist_signups WHERE phone', rows: [{ referral_code: code }] },
-    { contains: 'COUNT(invitee.phone)', rows: [{ referral_code: code, count: 3 }] },
+    { contains: 'ON CONFLICT (email) DO NOTHING', rows: [] },
+    { contains: 'SELECT referral_code FROM waitlist_signups WHERE email', rows: [{ referral_code: code }] },
+    { contains: 'COUNT(invitee.referral_code)', rows: [{ referral_code: code, count: 3 }] },
     { contains: 'COMMIT' },
   ])
   const store = createPostgresWaitlistStore(fixture.database)
-  assert.deepEqual(await store.add('+12025550123', 'another source', 'c'.repeat(32)), {
+  assert.deepEqual(await store.add('alex@example.com', 'another source', 'c'.repeat(32)), {
     added: false, referral: { code, count: 3, goal: 3, priorityAccess: true },
   })
   assert.ok(fixture.calls.every(({ text }) => !text.includes('UPDATE')))
@@ -69,25 +70,25 @@ test('failed writes roll back and release the checked-out connection without ret
     { contains: 'INSERT INTO', error: failure },
     { contains: 'ROLLBACK' },
   ])
-  await assert.rejects(createPostgresWaitlistStore(fixture.database).add('+12025550123', 'hero'), failure)
+  await assert.rejects(createPostgresWaitlistStore(fixture.database).add('alex@example.com', 'hero'), failure)
   assert.equal(fixture.releases(), 1)
   assert.ok(fixture.calls.every(({ text }) => text !== 'COMMIT'))
 })
 
 test('rare share-code collisions retry a fresh transaction and a new random code', async () => {
   const code = 'b'.repeat(32)
-  const collision = Object.assign(new Error('code conflict'), { code: '23505', constraint: 'waitlist_referral_code_unique' })
+  const collision = Object.assign(new Error('code conflict'), { code: '23505', constraint: 'waitlist_signups_pkey' })
   const fixture = scriptedDatabase([
     { contains: 'BEGIN' },
     { contains: 'INSERT INTO', error: collision },
     { contains: 'ROLLBACK' },
     { contains: 'BEGIN' },
     { contains: 'INSERT INTO', rows: [{ referral_code: code }] },
-    { contains: 'COUNT(invitee.phone)', rows: [{ referral_code: code, count: 0 }] },
+    { contains: 'COUNT(invitee.referral_code)', rows: [{ referral_code: code, count: 0 }] },
     { contains: 'COMMIT' },
   ])
   const codes = ['a'.repeat(32), code]
-  const result = await createPostgresWaitlistStore(fixture.database, () => codes.shift()!).add('+12025550123', 'hero')
+  const result = await createPostgresWaitlistStore(fixture.database, () => codes.shift()!).add('alex@example.com', 'hero')
   assert.equal(result.referral.code, code)
   assert.equal(fixture.releases(), 2)
   assert.notEqual(fixture.calls[1].values?.[2], fixture.calls[4].values?.[2])
@@ -115,24 +116,41 @@ test('real PostgreSQL migration, concurrent dedupe and first-referral attributio
     await control.query(`CREATE SCHEMA "${schema}"`)
     database = new Pool({ connectionString: process.env.TEST_DATABASE_URL, max: 8, options: `-c search_path=${schema}` })
     const migration = await readFile(new URL('../sql/001_waitlist.sql', import.meta.url), 'utf8')
+    const emailMigration = await readFile(new URL('../sql/002_email_waitlist.sql', import.meta.url), 'utf8')
     await database.query(migration)
     await database.query(migration)
+    const legacyCode = 'l'.repeat(32)
+    const legacyInviteeCode = 'm'.repeat(32)
+    await database.query(`
+      INSERT INTO waitlist_signups (phone, source, referral_code, referred_by, created_at)
+      VALUES ($1, 'legacy', $2, NULL, '2026-09-20T12:00:00Z'), ($3, 'legacy', $4, $2, '2026-09-21T12:00:00Z')
+    `, ['+12025550123', legacyCode, '+12025550124', legacyInviteeCode])
+    const legacyRows = (await database.query('SELECT phone, source, referral_code, referred_by, created_at FROM waitlist_signups ORDER BY phone')).rows
+    await database.query(emailMigration)
+    await database.query(emailMigration)
     const store = createPostgresWaitlistStore(database)
-    const inviter = (await store.add('+12025550123', 'test')).referral
-    const other = (await store.add('+12025550124', 'test')).referral
-    const phones = ['+12025550125', '+12025550126', '+12025550127']
-    const signups = await Promise.all([...phones, ...phones, ...phones].map((phone) => store.add(phone, 'test', inviter.code)))
+    assert.deepEqual((await database.query('SELECT phone, source, referral_code, referred_by, created_at FROM waitlist_signups WHERE phone IS NOT NULL ORDER BY phone')).rows, legacyRows)
+    assert.deepEqual(await store.referral(legacyCode), { code: legacyCode, count: 1, goal: 3, priorityAccess: false })
+    await store.add('legacy-invite1@example.com', 'test', legacyCode)
+    assert.equal((await store.referral(legacyCode))?.priorityAccess, false)
+    await store.add('legacy-invite2@example.com', 'test', legacyCode)
+    await store.add(' LEGACY-INVITE2@Example.com ', 'changed', legacyCode)
+    assert.deepEqual(await store.referral(legacyCode), { code: legacyCode, count: 3, goal: 3, priorityAccess: true })
+    const inviter = (await store.add('alex@example.com', 'test')).referral
+    const other = (await store.add('other@example.com', 'test')).referral
+    const emails = ['friend1@example.com', 'friend2@example.com', 'friend3@example.com']
+    const signups = await Promise.all([...emails, ...emails, ...emails].map((email) => store.add(email, 'test', inviter.code)))
     assert.equal(signups.filter(({ added }) => added).length, 3)
-    for (const phone of phones) await store.add(phone, 'changed source', other.code)
-    await store.add('+12025550123', 'test', inviter.code)
+    for (const email of emails) await store.add(email, 'changed source', other.code)
+    await store.add('alex@example.com', 'test', inviter.code)
     assert.deepEqual(await store.referral(inviter.code), { ...inviter, count: 3, priorityAccess: true })
     assert.equal((await store.referral(other.code))?.count, 0)
-    await store.add('+12025550128', 'test', 'z'.repeat(32))
-    const rows = await database.query('SELECT phone, referred_by, source FROM waitlist_signups ORDER BY phone')
-    assert.equal(rows.rows.length, 6)
+    await store.add('unknown@example.com', 'test', 'z'.repeat(32))
+    const rows = await database.query('SELECT email, referred_by, source FROM waitlist_signups ORDER BY email')
+    assert.equal(rows.rows.length, 10)
     assert.equal(rows.rows.filter((row) => row.referred_by === inviter.code).length, 3)
-    assert.ok(rows.rows.every((row) => row.source === 'test'))
-    assert.equal(rows.rows.at(-1).referred_by, null)
+    assert.ok(rows.rows.filter((row) => row.email).every((row) => row.source === 'test'))
+    assert.equal(rows.rows.find((row) => row.email === 'unknown@example.com').referred_by, null)
     const rls = await database.query('SELECT relrowsecurity FROM pg_class WHERE oid = $1::regclass', [`${schema}.waitlist_signups`])
     assert.equal(rls.rows[0].relrowsecurity, true)
   } finally {

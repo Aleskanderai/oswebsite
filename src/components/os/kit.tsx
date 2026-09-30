@@ -7,7 +7,7 @@ import './demo-surfaces.css'
 /*
   The Open Swarm desktop, rebuilt as components so the product scenes on the page are
   crisp animation instead of screen recordings. Colours, shapes and labels are measured
-  from Haik's launch videos, with a wallpaper canvas, light glass dock, dark agent cards
+  from Haik's launch videos, with a wallpaper canvas, translucent glass dock, dark agent cards
   with title pills, a voice pill and an app launcher. Every scene is a pure function
   of one clock `t` (seconds), so a scene can be
   frozen at any moment with ?t=4.5 in the URL for screenshots.
@@ -185,8 +185,8 @@ export function Desktop({ children, className, style, wallpaper = false }: { chi
     >
       {!wallpaper && <>
         {/* Wallpaper only: keep the timeline, camera, cards, cursor and all foreground layers intact. */}
-        <div aria-hidden className="pointer-events-none absolute -inset-[12px]" style={{ backgroundImage: `url("${media('canvas-twilight.webp')}")`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(3px)' }} />
-        <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(rgba(110,80,120,0.16) 1px, transparent 1.3px)', backgroundSize: '22px 22px' }} />
+        <div aria-hidden className="pointer-events-none absolute -inset-[12px]" style={{ backgroundImage: `url("${media('canvas-twilight.webp')}")`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(3px) brightness(1.32) saturate(0.82)' }} />
+        <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(rgba(213,233,255,0.19) 1px, transparent 1.3px), linear-gradient(160deg,rgba(194,221,246,0.19),rgba(231,235,248,0.08))', backgroundSize: '22px 22px, cover' }} />
       </>}
       {children}
     </div>
@@ -214,7 +214,7 @@ export function Glyph({ d, className, size = 18 }: { d: string; className?: stri
 }
 
 /**
- * Light frosted navigation with original app artwork. Keep the slot geometry stable:
+ * Slim frosted navigation with original app artwork. Keep the slot geometry stable:
  * the hero's pointer and expanding dock are choreographed against these coordinates.
  */
 export function Rail({
@@ -234,7 +234,7 @@ export function Rail({
     { key: 'book', asset: 'books' },
   ]
   return (
-    <div className={cn('demo-rail absolute flex w-[56px] flex-col items-center gap-[10px] rounded-[18px] py-[12px]', className)} style={style}>
+    <div className={cn('demo-rail absolute ml-[4px] flex w-[48px] flex-col items-center gap-[10px] rounded-[24px] py-[12px]', className)} style={style}>
       {[...top, ...extra].map((b) => {
         const p = 'p' in b && typeof b.p === 'number' ? b.p : 1
         return (
@@ -249,20 +249,20 @@ export function Rail({
               marginBottom: p < 1 ? -10 * (1 - p) : 0,
             }}
           >
-            <DemoAppIcon asset={b.asset} />
+            <DemoAppIcon asset={b.asset} size={32} />
           </span>
         )
       })}
-      <span className="my-[2px] h-px w-[26px] bg-[#263b50]/15 shadow-[0_1px_0_rgba(255,255,255,0.2)]" />
+      <span className="my-[2px] h-px w-[22px] bg-white/15 shadow-[0_1px_0_rgba(16,32,48,0.12)]" />
       {(['globe', 'calendar', 'store'] as RailIcon[]).map((k) => (
-        <span key={k} className="flex h-[30px] w-[30px] items-center justify-center text-[#263b50]/80">
-          {k === 'globe' ? <DemoAppIcon asset="safari" size={26} /> : k === 'calendar' ? <DemoAppIcon asset="calendar" size={26} /> : <Glyph d={railIcons[k]} />}
+        <span key={k} className="flex h-[30px] w-[30px] items-center justify-center text-white/85">
+          {k === 'globe' ? <DemoAppIcon asset="safari" size={24} /> : k === 'calendar' ? <DemoAppIcon asset="calendar" size={24} /> : <Glyph d={railIcons[k]} size={17} />}
         </span>
       ))}
-      <span className="my-[2px] h-px w-[26px] bg-[#263b50]/15 shadow-[0_1px_0_rgba(255,255,255,0.2)]" />
+      <span className="my-[2px] h-px w-[22px] bg-white/15 shadow-[0_1px_0_rgba(16,32,48,0.12)]" />
       {(['gear', 'grid'] as RailIcon[]).map((k) => (
-        <span key={k} className="flex h-[30px] w-[30px] items-center justify-center text-[#263b50]/80">
-          <Glyph d={railIcons[k]} />
+        <span key={k} className="flex h-[30px] w-[30px] items-center justify-center text-white/85">
+          <Glyph d={railIcons[k]} size={17} />
         </span>
       ))}
     </div>
@@ -342,23 +342,23 @@ export function AgentCard({
         <span className="h-[9px] w-[9px] rounded-full bg-black/15" />
         <span className="h-[9px] w-[9px] rounded-full bg-black/15" />
         <span className="h-[9px] w-[9px] rounded-full bg-black/15" />
-        <span className="ml-[4px] flex h-[26px] items-center gap-[8px] rounded-full bg-[#3f353f] pl-[11px] pr-[9px] text-[13px] font-semibold text-white shadow-[0_4px_12px_-6px_rgba(40,20,40,0.6)]">
+        <span className="ml-[4px] flex h-[26px] items-center gap-[8px] demo-title rounded-full pl-[11px] pr-[9px] text-[13px] font-semibold text-white shadow-[0_4px_12px_-6px_rgba(40,20,40,0.6)]">
           <span className="max-w-[230px] truncate">{title}</span>
           <StatusChip status={status} />
         </span>
       </div>
       {/* card */}
-      <div className="relative flex flex-col overflow-hidden rounded-[14px] bg-[#3c353c] shadow-[0_24px_50px_-26px_rgba(50,20,60,0.7),inset_0_0_0_1px_rgba(255,255,255,0.05)]" style={{ height }}>
+      <div className="relative flex flex-col overflow-hidden rounded-[14px] demo-panel" style={{ height }}>
         <div className="flex flex-1 flex-col gap-[12px] overflow-hidden px-[16px] pt-[16px]">
           {prompt && (
-            <div className="ml-auto max-w-[85%] rounded-[10px] bg-[#2d272d] px-[12px] py-[8px] text-[13px] leading-[1.5] text-white" style={rise(promptP, 6, 0)}>
+            <div className="ml-auto max-w-[85%] rounded-[10px] demo-inset px-[12px] py-[8px] text-[13px] leading-[1.5] text-white" style={rise(promptP, 6, 0)}>
               {prompt}
             </div>
           )}
           {children}
         </div>
         {composer && (
-          <div className="m-[10px] mt-0 rounded-[10px] bg-[#2d272d] px-[12px] py-[9px]">
+          <div className="m-[10px] mt-0 rounded-[10px] demo-inset px-[12px] py-[9px]">
             <div className="text-[13px] text-[#cfc6cf]">{status === 'done' ? 'Ask a follow-up...' : 'Agent is working, messages will queue...'}</div>
             <div className="mt-[6px] flex items-center gap-[12px] text-[11px] text-[#8e848e]">
               <span>Claude Opus ⌄</span>
@@ -394,7 +394,7 @@ export function Thinking({ t, className }: { t: number; className?: string }) {
   return (
     <span className={cn('inline-flex gap-[4px]', className)}>
       {[0, 1, 2].map((i) => (
-        <span key={i} className="h-[5px] w-[5px] rounded-full bg-[#b3aab3]" style={{ opacity: 0.3 + 0.7 * Math.max(0, Math.sin((t * 5 - i * 0.7) % (Math.PI * 2))) }} />
+        <span key={i} className="h-[5px] w-[5px] rounded-full bg-[#b3aab3]" style={{ opacity: 0.4 + 0.6 * Math.max(0, Math.sin(t * 5 - i * 0.7)), transform: `scale(${0.86 + 0.14 * Math.max(0, Math.sin(t * 5 - i * 0.7))})` }} />
       ))}
     </span>
   )

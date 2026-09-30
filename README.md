@@ -1,16 +1,16 @@
 # Open Swarm website
 
-The marketing website for [Open Swarm](https://openswarm.com), a free AI desktop for Mac. Built with React, TypeScript, and Vite, it combines animated product demonstrations with a phone waitlist and referral flow.
+The marketing website for [Open Swarm](https://openswarm.com), a free AI desktop for Mac. Built with React, TypeScript, and Vite, it combines animated product demonstrations with an email waitlist and referral flow.
 
 <table>
   <tr><th>Desktop demo</th><th>Mobile demo</th></tr>
   <tr>
-    <td width="68%"><img src="docs/preview-demo-desktop-2026-09-30.jpg" alt="Current desktop demo with lighter glass navigation and authentic Apple and Open Swarm app icons" /></td>
-    <td width="32%"><img src="docs/preview-demo-mobile-2026-09-30.jpg" alt="Current app launcher through the hero's mobile camera, with the same authentic application artwork" /></td>
+    <td width="68%"><img src="docs/preview-demo-desktop-2026-09-30.jpg" alt="Desktop demo with a slimmer translucent sidebar, lighter wallpaper, blue-gray glass panels, and authentic application icons" /></td>
+    <td width="32%"><img src="docs/preview-demo-mobile-2026-09-30.jpg" alt="Mobile demo showing the blue-gray glass app launcher over lighter wallpaper, with authentic Apple and Open Swarm artwork" /></td>
   </tr>
 </table>
 
-Captured from the current product demo in Safari on September 30, 2026, at desktop (1280px) and mobile (390px) scene widths. Both show the launcher at 11.8 seconds. See [the glass and app-icon refinement](docs/demo-glass-refinement.md) and [asset provenance](docs/app-assets.md).
+The current demo uses a slimmer translucent rail, lighter wallpaper, and blue-gray glass panels. The desktop (1280px) and mobile (390px) views show the launcher at 11.8 seconds. See [the glass and app-icon refinement](docs/demo-glass-refinement.md) and [asset provenance](docs/app-assets.md).
 
 <details>
 <summary>View the current illustrated footer</summary>
@@ -23,11 +23,11 @@ Captured from the current product demo in Safari on September 30, 2026, at deskt
 
 - Responsive landing page with product capabilities, four team use cases, an agent marketplace, and mobile navigation.
 - React-based product animations with reduced-motion support, off-screen pausing, and a development scene viewer.
-- Phone signup with country selection, international number validation, and duplicate detection.
+- Email signup with shared form/API validation and duplicate detection.
 - Personal invite links and referral progress. Three unique referred signups earn priority waitlist eligibility.
-- Local JSON storage for development, plus Node API handlers and a PostgreSQL migration for hosted signups.
+- Local JSON storage for development, plus Node API handlers and PostgreSQL migrations for hosted signups.
 
-The product scenes are visual demonstrations. Marketplace actions lead to the waitlist. Priority eligibility is recorded by the backend; SMS delivery, phone ownership verification, and product account activation are not implemented.
+The product scenes are visual demonstrations. Marketplace actions lead to the waitlist. Priority eligibility is recorded by the backend; email delivery, email ownership verification, and product account activation are not implemented.
 
 ## Quick start
 
@@ -42,7 +42,7 @@ npm run dev
 
 Open [localhost:4310](http://localhost:4310). The development port is fixed; stop another process using it before starting the server.
 
-Local signup works without environment variables or a database. Its first successful signup creates `.data/waitlist.json`. This file contains phone numbers, is ignored by Git, and is blocked from browser file requests. Run only one development or preview server against this store at a time.
+Local signup works without environment variables or a database. Its first successful signup creates `.data/waitlist.json`. This file contains email addresses and any retained phone signups, is ignored by Git, and is blocked from browser file requests. Run only one development or preview server against this store at a time.
 
 | Command | Purpose |
 | --- | --- |
@@ -50,7 +50,7 @@ Local signup works without environment variables or a database. Its first succes
 | `npm run build` | Type-check the app and server implementation, then build the frontend into `dist/` |
 | `npm run preview` | Serve the built frontend with the local waitlist API at `http://localhost:4173` by default |
 | `npm run lint` | Run oxlint |
-| `node --experimental-strip-types --test server/*.test.ts` | Run the waitlist, phone validation, and hosted handler tests |
+| `node --experimental-strip-types --test server/*.test.ts` | Run email, waitlist, retained phone-record validation, and hosted handler tests |
 
 Run `npm run build` before `npm run preview`. The preview command is for local verification; hosted signups need the API and database described below.
 
@@ -78,16 +78,18 @@ For end-to-end local referral checks, open `http://localhost:4310/?ref=<code>` u
 
 | Endpoint | Request | Behavior |
 | --- | --- | --- |
-| `POST /api/waitlist` | JSON with `phone`, optional `source`, and optional `referralCode` | Save a new signup or return the existing signup's referral progress |
+| `POST /api/waitlist` | JSON with `email`, optional `source`, and optional `referralCode` | Save a new signup or return the existing signup's referral progress |
 | `GET /api/waitlist/referral?code=<code>` | A valid share code | Return the current referral count, goal, and priority eligibility |
 
-The form normalizes country-selected numbers to E.164 before submission. The API also validates numbers and deduplicates equivalent formats. A new signup returns HTTP 201; an existing signup returns HTTP 200 without changing its original referral attribution. Success responses contain referral metadata, never phone numbers.
+The form and API trim outer spaces and lowercase accepted email addresses. Dots and plus tags remain intact; provider-specific aliases are not merged. A new signup returns HTTP 201; an existing email returns HTTP 200 without changing its original referral attribution. Success responses contain referral metadata, never email addresses or phone numbers. Phone-only signup requests are no longer accepted.
 
-Each signup receives a random share code. Only new, unique signups attributed to that code count toward the three-referral goal. Repeated submissions and self-referrals do not increase the count. The browser saves share codes for recovery and attribution, not phone numbers.
+Each signup receives a random share code. Only new, unique signups attributed to that code count toward the three-referral goal. Repeated submissions and self-referrals do not increase the count. The browser saves share codes for recovery and attribution, not email addresses or phone numbers.
+
+Existing phone records, share codes, and referral attribution are retained. The phone normalizer remains to validate those stored records; it is not part of the current signup form. Email signups are separate identities, and the migration does not infer email addresses or merge them with earlier phone signups.
 
 Local writes are serialized and saved atomically within one server process. Hosted writes use PostgreSQL transactions and uniqueness constraints. The hosted API returns a generic HTTP 503 if storage is unavailable and never falls back to the local JSON file.
 
-See [referral behavior](docs/referral-backend.md), [phone input](docs/phone-input.md), and [hosted database setup](docs/production-waitlist.md) for implementation details.
+See [referral behavior](docs/referral-backend.md) and [hosted database setup](docs/production-waitlist.md) for current implementation details. The [phone input audit](docs/phone-input.md) is historical.
 
 ## Deployment
 
@@ -95,7 +97,7 @@ Deploy the **repository root**, including `api/`, `server/`, and dependencies. U
 
 The included hosted entry points target Vercel's Node runtime. Before collecting hosted signups:
 
-1. Configure a PostgreSQL database and deliberately apply [sql/001_waitlist.sql](sql/001_waitlist.sql).
+1. Configure a PostgreSQL database and deliberately apply [sql/001_waitlist.sql](sql/001_waitlist.sql), then [sql/002_email_waitlist.sql](sql/002_email_waitlist.sql). If `001` is already applied, apply `002` before deploying the email signup API.
 2. Set the hosting project's server-only `DATABASE_URL` and the frontend variables above.
 3. Build and deploy the frontend together with both API routes.
 4. Verify signup, duplicate handling, an invited signup, and referral progress against the deployed endpoints.
@@ -125,7 +127,7 @@ The script checks for `DATABASE_URL`, builds the project, verifies both Node API
 ```text
 api/                        Hosted signup and referral handlers
 server/                     Local and PostgreSQL stores, middleware, and tests
-sql/001_waitlist.sql         PostgreSQL schema migration
+sql/                        Initial PostgreSQL schema and email migration
 src/
   App.tsx                   Page composition and navigation behavior
   main.tsx                  Entry point and development-only scene viewer
@@ -135,13 +137,13 @@ src/
     os/                     Product scenes and animation primitives
     usecases/               Sales, operations, recruiting, and research panels
     ui/                     Shared UI, waitlist form, and referral dialog
-  lib/                      Phone/referral helpers, links, brands, and tracking
+  lib/                      Email/referral helpers, legacy phone validation, links, brands, and tracking
 public/                     Favicon, illustrations, logos, and icon licenses
 scripts/deploy-preview.sh   Complete preview packaging and deployment
 docs/                       Setup guides, design notes, and verification records
 ```
 
-The frontend uses React 19, TypeScript 6, Vite 8, Tailwind CSS 4, Motion, and Lenis. Phone parsing uses `libphonenumber-js`; hosted storage uses `pg`. Brand marks come from `simple-icons` and the supplied assets. Typography uses Geist, Geist Mono, and Manrope.
+The frontend uses React 19, TypeScript 6, Vite 8, Tailwind CSS 4, Motion, and Lenis. Retained phone-record validation uses `libphonenumber-js`; hosted storage uses `pg`. Brand marks come from `simple-icons` and the supplied assets. Typography uses Geist, Geist Mono, and Manrope.
 
 ### Editing product animations
 
@@ -175,7 +177,7 @@ To add a scene, reuse `Stage`, `useTimeline`, and the timing helpers from `kit.t
 
 ## Verification and launch notes
 
-Run the build, lint, and test commands above before shipping code changes. Checks on September 30, 2026 passed the build and 27 tests, with one live PostgreSQL integration test skipped. Lint reported existing warnings, and Vite reported a large-bundle advisory.
+Run the build, lint, and test commands above before shipping code changes. The live PostgreSQL integration test is skipped unless `TEST_DATABASE_URL` is supplied. Vite currently reports a large-bundle advisory.
 
 To run the live database test, supply `TEST_DATABASE_URL` through the shell environment or Node's `--env-file=.env.local` option. The plain Node test command does not automatically load Vite environment files. Use an isolated test database with schema-creation permission; the test creates and removes its own temporary schema.
 
@@ -184,7 +186,7 @@ The repository contains the hosted backend implementation. A GitHub push alone d
 Items to confirm before a public launch:
 
 - Connect the intended hosting project and migrated database, and verify the hosted signup/referral flow.
-- Configure approved Privacy and Terms pages and the intended notification service. SMS delivery and phone ownership verification need separate implementation.
+- Configure approved Privacy and Terms pages and the intended notification service. Email delivery and ownership verification need separate implementation.
 - Confirm the hero's supplied 6,327-person waitlist count, which is currently hard-coded.
 - Align Problem Validator's advertised source list with its six-agent demonstration and confirm the three “Coming soon” marketplace items.
 - Review illustrative quotes, restaurants, ratings, companies, candidates, amounts, and fixed dates in the demonstrations.

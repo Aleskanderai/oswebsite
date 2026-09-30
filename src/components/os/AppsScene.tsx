@@ -122,7 +122,7 @@ function AgentPanel({ t }: { t: number }) {
         <span className="h-[8px] w-[8px] rounded-full bg-black/15" />
         <span className="h-[8px] w-[8px] rounded-full bg-black/15" />
         <span className="h-[8px] w-[8px] rounded-full bg-black/15" />
-        <span className="ml-[3px] flex h-[26px] items-center gap-[7px] rounded-full bg-[#3f353f] pl-[11px] pr-[8px] text-[13px] font-semibold text-white shadow-[0_4px_12px_-6px_rgba(40,20,40,0.6)]">
+        <span className="ml-[3px] flex h-[26px] items-center gap-[7px] demo-title rounded-full pl-[11px] pr-[8px] text-[13px] font-semibold text-white shadow-[0_4px_12px_-6px_rgba(40,20,40,0.6)]">
           Daily brief app
           <span className="relative h-[17px] w-[40px]">
             {done < 1 && (
@@ -139,7 +139,7 @@ function AgentPanel({ t }: { t: number }) {
         </span>
       </div>
       {/* card */}
-      <div className="relative overflow-hidden rounded-[14px] bg-[#3c353c] px-[12px] pt-[14px] shadow-[0_24px_50px_-26px_rgba(50,20,60,0.7),inset_0_0_0_1px_rgba(255,255,255,0.05)]" style={{ height: CARD.body }}>
+      <div className="relative overflow-hidden rounded-[14px] demo-panel px-[12px] pt-[14px]" style={{ height: CARD.body }}>
         <div className="flex flex-col gap-[9px]">
           <div className="h-[17px]">{s[0] > 0 && <StepRow step={S1} p={s[0]} />}</div>
           <div className="h-[17px]">{s[1] > 0 && <StepRow step={S2} p={s[1]} />}</div>
