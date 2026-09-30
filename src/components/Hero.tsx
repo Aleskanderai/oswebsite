@@ -34,7 +34,6 @@ export function Hero() {
           <h1 className="mx-auto mt-5 max-w-[850px] font-display text-[40px] font-normal leading-[1.08] tracking-[-0.045em] text-[#0a2028] sm:mt-5 sm:text-[54px] lg:text-[60px]">
             Everyone gets a Jarvis now.
           </h1>
-          <p className="mt-4 text-[13px] font-medium tracking-[-0.01em] text-[#23434d] sm:text-[14px]">100% free. Your AI desktop for Mac.</p>
           <div className="mt-5">
             <WaitlistForm placement="hero" />
           </div>
