@@ -3,14 +3,14 @@
 The marketing website for [Open Swarm](https://openswarm.com), a free AI desktop for Mac. Built with React, TypeScript, and Vite, it combines animated product demonstrations with a phone waitlist and referral flow.
 
 <table>
-  <tr><th>Desktop</th><th>Mobile</th></tr>
+  <tr><th>Desktop demo</th><th>Mobile demo</th></tr>
   <tr>
-    <td width="74%"><img src="docs/preview-desktop-2026-09-30.jpg" alt="Current desktop site with the Jarvis headline, phone waitlist, and animated product desktop" /></td>
-    <td width="26%"><img src="docs/preview-mobile-2026-09-30.jpg" alt="Current mobile site with phone signup, referral sharing, and the responsive product scene" /></td>
+    <td width="68%"><img src="docs/preview-demo-desktop-2026-09-30.jpg" alt="Current desktop demo with lighter glass navigation and authentic Apple and Open Swarm app icons" /></td>
+    <td width="32%"><img src="docs/preview-demo-mobile-2026-09-30.jpg" alt="Current app launcher through the hero's mobile camera, with the same authentic application artwork" /></td>
   </tr>
 </table>
 
-Captured from the current website on September 30, 2026, at desktop (1440px) and mobile (390px) widths. Animations are shown in their reduced-motion resting state.
+Captured from the current product demo in Safari on September 30, 2026, at desktop (1280px) and mobile (390px) scene widths. Both show the launcher at 11.8 seconds. See [the glass and app-icon refinement](docs/demo-glass-refinement.md) and [asset provenance](docs/app-assets.md).
 
 <details>
 <summary>View the current illustrated footer</summary>
@@ -164,7 +164,7 @@ To add a scene, reuse `Stage`, `useTimeline`, and the timing helpers from `kit.t
 
 - Keep interface controls primarily black and white, with color in imagery and backgrounds. Preserve the established blue section labels and EF purple badge.
 - Reserve first-party orange for the Open Swarm octopus and EF wordmark. Third-party logos retain their original colors.
-- Use real third-party logos from [brands.ts](src/lib/brands.ts). Open Swarm agents and apps may use line icons.
+- Use real third-party logos from [brands.ts](src/lib/brands.ts). Demo applications use original artwork from [app-assets.ts](src/lib/app-assets.ts); reserve line icons for utility controls. Daily Brief has its own illustration because it is created within the demo.
 - Write plain sentences without em dashes in site copy.
 - Give each animation a descriptive `Stage` or `PanelRoot` label and preserve reduced-motion behavior.
 - Check phone widths, keyboard navigation, and horizontal overflow after UI changes.

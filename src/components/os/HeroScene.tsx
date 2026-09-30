@@ -1,7 +1,8 @@
 import { useRef, type CSSProperties, type ReactNode } from 'react'
 import { B } from '@/lib/brands'
+import type { AppAssetId } from '@/lib/app-assets'
+import { DemoAppIcon } from './DemoAppIcon'
 import {
-  APP_GLYPH,
   Cursor,
   Desktop,
   Glyph,
@@ -9,7 +10,6 @@ import {
   Mark,
   Rail,
   Stage,
-  TILE,
   Thinking,
   VoicePill,
   clamp,
@@ -26,7 +26,6 @@ import {
   useStageWidth,
   useTimeline,
   type StageView,
-  type TileColor,
 } from './kit'
 
 /*
@@ -466,19 +465,19 @@ const custom3 = (id: string, t: number) => (id === 'browser' ? <SearchWin t={t} 
 
 /* ---------- launcher ---------- */
 
-const APPS: { label: string; color: TileColor; glyph?: ReactNode }[] = [
-  { label: 'Daily Brief', color: 'violet', glyph: <Glyph d={APP_GLYPH.brief} size={26} /> },
-  { label: 'CRM Core', color: 'blue', glyph: <Glyph d={APP_GLYPH.crm} size={26} /> },
-  { label: 'Job Hunter', color: 'green', glyph: <Glyph d={APP_GLYPH.jobs} size={26} /> },
-  { label: 'Post Harvester', color: 'pink' },
-  { label: 'Lead Finder', color: 'indigo', glyph: <Glyph d={APP_GLYPH.leads} size={26} /> },
-  { label: 'Validator', color: 'teal', glyph: <Glyph d={APP_GLYPH.validator} size={26} /> },
-  { label: 'Finder', color: 'slate', glyph: <Glyph d={IC.folder} size={26} /> },
-  { label: 'Dependency Scan', color: 'red' },
-  { label: 'Inbox Zero', color: 'green', glyph: <Glyph d={IC.inbox} size={26} /> },
-  { label: 'Meeting Notes', color: 'pink', glyph: <Glyph d={IC.notes} size={26} /> },
-  { label: 'Price Watch', color: 'violet', glyph: <Glyph d={IC.tag} size={26} /> },
-  { label: 'Trip Planner', color: 'blue', glyph: <Glyph d={IC.pin} size={26} /> },
+const APPS: { label: string; asset: AppAssetId }[] = [
+  { label: 'Daily Brief', asset: 'brief' },
+  { label: 'CRM Core', asset: 'crm' },
+  { label: 'Akira', asset: 'akira' },
+  { label: 'Post Harvester', asset: 'postHarvester' },
+  { label: 'Lead Finder', asset: 'leads' },
+  { label: 'Problem Validator', asset: 'validator' },
+  { label: 'Finder', asset: 'finder' },
+  { label: 'Git Graph', asset: 'gitGraph' },
+  { label: 'Social Footprint', asset: 'socialFootprint' },
+  { label: 'Skill Editor', asset: 'skillEditor' },
+  { label: 'Analytics Refresh', asset: 'analytics' },
+  { label: 'Style Guide', asset: 'styleGuide' },
 ]
 
 /* ---------- the Daily Brief app ---------- */
@@ -579,7 +578,7 @@ function Brief({ t, w }: { t: number; w: number }) {
                     </svg>
                   )}
                 </span>
-                <Mark brand={r.brand} size={24} fill />
+                {r.brand === B.imessage ? <DemoAppIcon asset="messages" size={24} /> : <Mark brand={r.brand} size={24} fill />}
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-[14px] font-semibold leading-[18px]" style={{ color: mix('#1d1a20', '#9a94a0', c) }}>
                     <span className="relative inline-block">
@@ -735,20 +734,13 @@ export function HeroScene() {
 
             {dim > 0 && <div className="absolute inset-0" style={{ background: `rgba(44,24,56,${0.22 * dim})` }} />}
             {lp > 0 && (
-              // frosted backing, so the busy cards behind the launcher blur instead of reading through
-              <div
-                className="absolute rounded-[18px] bg-[#1f1b22]/60 [-webkit-backdrop-filter:blur(14px)] [backdrop-filter:blur(14px)]"
-                style={{ left: LX, top: LY, width: LW, height: LH, ...popIn(lp), transformOrigin: launcherOrigin }}
-              />
-            )}
-            {lp > 0 && (
               <Launcher
                 apps={APPS}
                 p={lp}
                 ps={ps}
                 count={54}
                 cols={4}
-                style={{ left: LX, top: LY, width: LW, transformOrigin: launcherOrigin }}
+                style={{ left: LX, top: LY, width: LW, height: LH, transformOrigin: launcherOrigin }}
               />
             )}
             {tileHover > 0 && (
@@ -760,7 +752,7 @@ export function HeroScene() {
 
         <Rail
           style={{ left: 16, top: RAIL_Y - railShift }}
-          extra={railP > 0 ? [{ key: 'brief', bg: `linear-gradient(160deg,${TILE.violet[0]},${TILE.violet[1]})`, icon: <Glyph d={APP_GLYPH.brief} />, p: railP }] : []}
+          extra={railP > 0 ? [{ key: 'brief', asset: 'brief', p: railP }] : []}
         />
         {gridHover > 0 && <span className="absolute rounded-[9px] bg-white/20" style={{ left: GRID[0] - 17, top: GRID[1] - 17, width: 34, height: 34, opacity: gridHover }} />}
         {curO > 0 && <Cursor x={cx - 2} y={cy - 1.5} click={click} style={{ opacity: curO }} />}
