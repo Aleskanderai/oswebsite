@@ -7,7 +7,7 @@ The supplied Open Swarm screenshots remain the primary reference. Keep the exist
 | Detail | Current implementation |
 | --- | --- |
 | Sidebar | 48px translucent blue-gray glass, down from 56px, with a 4px inset that preserves its center. Original app artwork is 32px inside the existing 38px animation slots. Thin lit edges and a soft lower shadow replace the pale block-like face. |
-| Wallpaper | The same twilight artwork, with a brighter, less saturated treatment and a light blue veil. The dotted canvas remains subtle. |
+| Wallpaper | The same twilight artwork, with a brighter, less saturated treatment and a light blue veil. The dot overlay has been removed. |
 | Agent panels and launcher | A coordinated blue-gray glass palette, thin highlights, restrained backdrop blur and recessed translucent composers. Labels stay on a sharp foreground. |
 | Real controls | Navigation and team tabs use a damped moving highlight and a small press response. Tab changes have short contained transitions and explicit reduced-motion behavior. |
 | Loading and signup | Email replaces the country/phone control. Joining keeps the button's width stable, locks repeated submissions, announces progress and shows success only after the API confirms the save. The existing referral confirmation stays intact. |

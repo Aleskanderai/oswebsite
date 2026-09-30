@@ -186,7 +186,7 @@ export function Desktop({ children, className, style, wallpaper = false }: { chi
       {!wallpaper && <>
         {/* Wallpaper only: keep the timeline, camera, cards, cursor and all foreground layers intact. */}
         <div aria-hidden className="pointer-events-none absolute -inset-[12px]" style={{ backgroundImage: `url("${media('canvas-twilight.webp')}")`, backgroundSize: 'cover', backgroundPosition: 'center', filter: 'blur(3px) brightness(1.32) saturate(0.82)' }} />
-        <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(rgba(213,233,255,0.19) 1px, transparent 1.3px), linear-gradient(160deg,rgba(194,221,246,0.19),rgba(231,235,248,0.08))', backgroundSize: '22px 22px, cover' }} />
+        <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(160deg,rgba(194,221,246,0.19),rgba(231,235,248,0.08))' }} />
       </>}
       {children}
     </div>
