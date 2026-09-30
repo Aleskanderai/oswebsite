@@ -8,19 +8,25 @@ The email flow extends the existing email waitlist and preserves its signup resp
 npm run email:preview
 ```
 
-Open [localhost:4312](http://localhost:4312). The gallery switches between confirmation and priority emails, desktop and 390px mobile widths, and a simulated dark appearance. It also includes plain-text versions. The preview server only serves generated files and artwork; it has no delivery transport.
+Open [localhost:4312](http://localhost:4312). The gallery switches between confirmation and priority emails, desktop and 390px mobile widths, and a simulated dark inbox background. It also includes plain-text versions. The preview server only serves generated files and artwork; it has no delivery transport.
 
 `npm run email:build` exports the [gallery](email-preview/index.html), [confirmation](email-preview/welcome.html), [priority message](email-preview/priority.html), and matching `.txt` files. These are review artifacts with fictional referral codes, inactive unsubscribe tokens, and relative image paths. Production messages are rendered per recipient with absolute HTTPS asset URLs and signed unsubscribe links.
 
-The design uses the site's coral octopus in a warm celebration panel, followed by a deep blue invitation card. Three numbered friend markers explain the reward; the priority version turns all three into joined checks. These are goal illustrations, not a live referral counter. A 600px table layout, inline styles, system fonts, and HTML text keep the email useful when images are blocked. The original `public/media/logo-256.png` is reused directly. Celebration details are email-safe text and tables; no extra artwork download is required.
+The refined design uses a 560px white reading column, small original octopus wordmark, and one restrained invitation illustration. Helvetica Neue with Segoe UI/Helvetica/Arial fallbacks provides warmer, quieter typography: 28px regular-weight headings (26px on mobile), 15px/24px body text, and 17px secondary headings. A fine divider introduces the three-referral benefit and a compact, left-aligned sharing button. HTML tables and inline styles keep the confirmation, referral offer, and links readable when images are blocked. No external font download is required.
 
 The supplied [LaunchList article](https://getlaunchlist.com/blog/waitlist-email-templates-that-get-opened) and [Crafting Emails examples](https://craftingemails.com/vari-waitlist-email-templates) informed the sequence: confirm the signup, set expectations, offer one clear action. Copy and implementation are original. No purchased template code was used.
+
+### Visual reference lock and artwork
+
+The user-supplied Jev email screenshot anchors the compact, letter-like hierarchy and direct confirmation. Crafting Emails contributes a single primary action and a friendly illustration. Open Swarm contributes the original coral mark and the three-friend reward. The user requested smaller, less cold typography and a sleek design; the refinement removes the oversized celebration panel, slogans, numbered tiles, and dark promotional card. Refero’s live search was unavailable, so its bundled typography guidance and the supplied references informed the build.
+
+`public/media/email/invitations.jpg` is original synthetic artwork generated with Higgsfield GPT Image 2 on September 30, 2026. Its art direction is three translucent vellum invitations, one coral insert, soft daylight, a pure white background, and no text or logos. The 2688 × 1152 source was resized to 1120 × 480 JPEG (about 53KB), displayed at up to 560 × 240. The paper and artwork remain white in the dark preview, with a dark outer canvas and readable footer. The original logo is reused separately, unchanged. The image is decorative; it does not claim that access invitations have already been issued.
 
 ## What subscribers receive
 
 | Trigger | Subject | Content and action |
 | --- | --- | --- |
-| New saved email signup while delivery is enabled | You're on the Open Swarm waitlist | Confirms the saved spot and explains that access will arrive by email. “Invite your people” opens a prepared email draft containing the personal referral URL; the same URL is visible for copying. |
+| New saved email signup while delivery is enabled | You're on the Open Swarm waitlist | Confirms the saved spot and explains that access will arrive by email. “Share your invite” opens a prepared email draft containing the personal referral URL; the same URL is visible for copying. |
 | Third unique referred signup | You've unlocked priority early access | Confirms the existing three-referral milestone. Explains that the actual invitation will arrive separately. Links back to the product section. |
 | Duplicate signup | No new email | Returns existing referral progress without changing attribution, resending, or undoing an opt-out. |
 | Unsubscribe | No additional confirmation email | Suppresses future waitlist messages while retaining the saved signup and referral history. |
@@ -49,7 +55,7 @@ flowchart LR
 
    Migration 003 adds private opt-out metadata and the durable queue. It is additive and rerunnable. It does not enqueue existing contacts or import local signup data. Requests and deploy scripts never apply migrations automatically.
 
-3. Deploy the repository root with all four API functions and the public email artwork. Confirm that the canonical public domain serves `/media/logo-256.png`, the referral landing page, and `/api/waitlist/unsubscribe`.
+3. Deploy the repository root with all four API functions and the public email artwork. Confirm that the canonical public domain serves `/media/logo-256.png`, `/media/email/invitations.jpg`, the referral landing page, and `/api/waitlist/unsubscribe`.
 4. Configure the following **server-only** settings in the hosting environment. Keep them out of `VITE_` variables and Git:
 
    | Variable | Value |

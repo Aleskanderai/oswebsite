@@ -19,6 +19,7 @@ test('welcome HTML and plain text preserve the personal invite and real next ste
   assert.match(email.html, /when early access opens/)
   assert.match(email.text, /When 3 friends join/)
   assert.ok(email.html.includes('src="https://example.com/launch/media/logo-256.png"'))
+  assert.ok(email.html.includes('src="https://example.com/launch/media/email/invitations.jpg"'))
   assert.ok(email.html.includes('href="' + options.unsubscribeUrl + '"'))
   assert.ok(email.text.includes(options.unsubscribeUrl))
   assert.doesNotMatch(email.html, /<script|<iframe|<form|backdrop-filter|data:image|first.?name/i)
