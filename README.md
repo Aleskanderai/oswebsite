@@ -5,12 +5,12 @@ The marketing website for [Open Swarm](https://openswarm.com), a free AI desktop
 <table>
   <tr><th>Desktop demo</th><th>Mobile demo</th></tr>
   <tr>
-    <td width="68%"><img src="docs/preview-demo-desktop-2026-09-30.jpg" alt="Desktop demo with a slimmer translucent sidebar, lighter wallpaper, blue-gray glass panels, and authentic application icons" /></td>
+    <td width="68%"><img src="docs/preview-demo-desktop-2026-09-30.jpg" alt="Desktop demo with a slimmer translucent sidebar, lighter wallpaper, blue-gray glass panels, and authentic application icons, including ChatGPT and Claude in the sidebar" /></td>
     <td width="32%"><img src="docs/preview-demo-mobile-2026-09-30.jpg" alt="Mobile demo showing the blue-gray glass app launcher over lighter wallpaper, with authentic Apple and Open Swarm artwork" /></td>
   </tr>
 </table>
 
-The current demo uses a slimmer translucent rail, lighter wallpaper, and blue-gray glass panels. The desktop (1280px) and mobile (390px) views show the launcher at 11.8 seconds. See [the glass and app-icon refinement](docs/demo-glass-refinement.md) and [asset provenance](docs/app-assets.md).
+The current demo uses a slimmer translucent rail with authentic ChatGPT and Claude icons, lighter wallpaper, and blue-gray glass panels. The desktop (1280px) and mobile (390px) views show the launcher at 11.8 seconds. See [the glass and app-icon refinement](docs/demo-glass-refinement.md) and [asset provenance](docs/app-assets.md).
 
 <details>
 <summary>View the current illustrated footer</summary>
@@ -22,12 +22,13 @@ The current demo uses a slimmer translucent rail, lighter wallpaper, and blue-gr
 ## What's included
 
 - Responsive landing page with product capabilities, four team use cases, an agent marketplace, and mobile navigation.
-- React-based product animations with reduced-motion support, off-screen pausing, and a development scene viewer.
+- React-based product animations with reduced-motion support, off-screen pausing, and a development scene viewer. Use-case app icons select a step in the demonstration, with hover/focus feedback and a Replay control.
 - Email signup with shared form/API validation and duplicate detection.
 - Personal invite links and referral progress. Three unique referred signups earn priority waitlist eligibility.
 - Local JSON storage for development, plus Node API handlers and PostgreSQL migrations for hosted signups.
+- Branded confirmation and priority-unlocked emails, with a durable send queue, retries, and signed unsubscribe links. [Preview the emails](docs/email-preview/index.html) or read the [email flow and activation guide](docs/waitlist-email-flow.md).
 
-The product scenes are visual demonstrations. Marketplace actions lead to the waitlist. Priority eligibility is recorded by the backend; email delivery, email ownership verification, and product account activation are not implemented.
+The product scenes are visual demonstrations. Marketplace actions lead to the waitlist. Priority eligibility is recorded by the backend. Email delivery is implemented as a server-only opt-in and is disabled by default; email ownership verification and product account activation are not implemented.
 
 ## Quick start
 
@@ -50,6 +51,8 @@ Local signup works without environment variables or a database. Its first succes
 | `npm run build` | Type-check the app and server implementation, then build the frontend into `dist/` |
 | `npm run preview` | Serve the built frontend with the local waitlist API at `http://localhost:4173` by default |
 | `npm run lint` | Run oxlint |
+| `npm run email:preview` | Open the email gallery at `http://localhost:4312` with synthetic data; sends nothing |
+| `npm run email:build` | Export email HTML, plain text, and the gallery into `docs/email-preview/` |
 | `node --experimental-strip-types --test server/*.test.ts` | Run email, waitlist, retained phone-record validation, and hosted handler tests |
 
 Run `npm run build` before `npm run preview`. The preview command is for local verification; hosted signups need the API and database described below.
@@ -71,6 +74,8 @@ cp .env.example .env.local
 | `TEST_DATABASE_URL` | Test runner | Optional isolated PostgreSQL database for the live integration test |
 
 `VITE_` variables are public and embedded at build time. Restart development after changing them, or rebuild for deployment. Keep database credentials in server-only variables. Setting `DATABASE_URL` does not switch the local Vite waitlist to PostgreSQL.
+
+For optional email delivery, configure the server-only `WAITLIST_EMAIL_*`, `RESEND_API_KEY`, and `CRON_SECRET` settings in [.env.example](.env.example) after following the [activation guide](docs/waitlist-email-flow.md). Local Vite signups never send email.
 
 For end-to-end local referral checks, open `http://localhost:4310/?ref=<code>` using a code returned by the local API. Generated share links use the configured public origin and do not automatically point back to localhost.
 
@@ -99,7 +104,7 @@ The included hosted entry points target Vercel's Node runtime. Before collecting
 
 1. Configure a PostgreSQL database and deliberately apply [sql/001_waitlist.sql](sql/001_waitlist.sql), then [sql/002_email_waitlist.sql](sql/002_email_waitlist.sql). If `001` is already applied, apply `002` before deploying the email signup API.
 2. Set the hosting project's server-only `DATABASE_URL` and the frontend variables above.
-3. Build and deploy the frontend together with both API routes.
+3. Build and deploy the frontend together with all four API routes. Before enabling email delivery, apply [sql/003_waitlist_email_delivery.sql](sql/003_waitlist_email_delivery.sql) and complete the [email setup](docs/waitlist-email-flow.md).
 4. Verify signup, duplicate handling, an invited signup, and referral progress against the deployed endpoints.
 
 Follow [hosted waitlist setup](docs/production-waitlist.md) for migration commands and database access requirements. Deployment does not automatically migrate the database or import local `.data/` records.
@@ -120,14 +125,14 @@ After configuring the intended preview project's database and authenticating the
 sh scripts/deploy-preview.sh my-preview-project review
 ```
 
-The script checks for `DATABASE_URL`, builds the project, verifies both Node API function bundles, and deploys to the **Production environment of the named preview project**. It applies `noindex`, so use a dedicated preview project. See [preview deployment](docs/deploy-preview.md) for scope selection and prerequisites.
+The script checks for `DATABASE_URL`, builds the project, verifies all four Node API function bundles, and deploys to the **Production environment of the named preview project**. It applies `noindex`, so use a dedicated preview project. See [preview deployment](docs/deploy-preview.md) for scope selection and prerequisites.
 
 ## Project structure
 
 ```text
-api/                        Hosted signup and referral handlers
+api/                        Hosted signup, referral, email worker, and unsubscribe handlers
 server/                     Local and PostgreSQL stores, middleware, and tests
-sql/                        Initial PostgreSQL schema and email migration
+sql/                        PostgreSQL schema, email contacts, and delivery outbox migrations
 src/
   App.tsx                   Page composition and navigation behavior
   main.tsx                  Entry point and development-only scene viewer
@@ -140,6 +145,7 @@ src/
   lib/                      Email/referral helpers, legacy phone validation, links, brands, and tracking
 public/                     Favicon, illustrations, logos, and icon licenses
 scripts/deploy-preview.sh   Complete preview packaging and deployment
+scripts/preview-emails.ts   Email gallery and HTML/plain-text exports
 docs/                       Setup guides, design notes, and verification records
 ```
 
@@ -186,7 +192,7 @@ The repository contains the hosted backend implementation. A GitHub push alone d
 Items to confirm before a public launch:
 
 - Connect the intended hosting project and migrated database, and verify the hosted signup/referral flow.
-- Configure approved Privacy and Terms pages and the intended notification service. Email delivery and ownership verification need separate implementation.
+- Configure approved Privacy and Terms pages, activate the intended email sender using the [email guide](docs/waitlist-email-flow.md), and verify actual inbox delivery. Email ownership verification remains a separate feature.
 - Confirm the hero's supplied 6,327-person waitlist count, which is currently hard-coded.
 - Align Problem Validator's advertised source list with its six-agent demonstration and confirm the three “Coming soon” marketplace items.
 - Review illustrative quotes, restaurants, ratings, companies, candidates, amounts, and fixed dates in the demonstrations.

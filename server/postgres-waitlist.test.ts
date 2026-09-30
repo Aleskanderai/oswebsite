@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises'
 import { test } from 'node:test'
 import { Pool, type PoolClient } from 'pg'
 import { createPostgresWaitlistStore } from './postgres-waitlist.ts'
+import { createEmailOutbox } from './email-outbox.ts'
 
 type Call = { text: string, values: unknown[] | undefined }
 type Step = { contains: string, rows?: unknown[], error?: Error }
@@ -105,6 +106,55 @@ test('public referral lookup returns only progress or null', async () => {
   assert.equal(await store.referral('missing'), null)
 })
 
+test('enabled delivery locks the inviter before signup and queues both events in its transaction', async () => {
+  const code = 'a'.repeat(32)
+  const inviter = 'b'.repeat(32)
+  const fixture = scriptedDatabase([
+    { contains: 'BEGIN' },
+    { contains: 'FOR UPDATE', rows: [{ referral_code: inviter }] },
+    { contains: 'ON CONFLICT (email) DO NOTHING', rows: [{ referral_code: code, referred_by: inviter }] },
+    { contains: "referral_code, 'welcome'" },
+    { contains: "inviter.referral_code, 'priority'" },
+    { contains: 'COUNT(invitee.referral_code)', rows: [{ referral_code: code, count: 0 }] },
+    { contains: 'COMMIT' },
+  ])
+  await createPostgresWaitlistStore(fixture.database, () => code, { emailDelivery: true }).add('friend@example.com', 'hero', inviter)
+  assert.deepEqual(fixture.calls[1].values, [inviter, 'friend@example.com'])
+  assert.equal(fixture.calls[3].values?.[1], code)
+  assert.equal(fixture.calls[4].values?.[1], inviter)
+  assert.match(fixture.calls[4].text, /= 3/)
+  assert.match(fixture.calls[4].text, /inviter.email IS NOT NULL/)
+  assert.equal(fixture.remaining(), 0)
+})
+
+test('enabled delivery does not enqueue duplicate signups', async () => {
+  const code = 'a'.repeat(32)
+  const fixture = scriptedDatabase([
+    { contains: 'BEGIN' },
+    { contains: 'ON CONFLICT (email) DO NOTHING', rows: [] },
+    { contains: 'SELECT referral_code FROM waitlist_signups WHERE email', rows: [{ referral_code: code }] },
+    { contains: 'COUNT(invitee.referral_code)', rows: [{ referral_code: code, count: 3 }] },
+    { contains: 'COMMIT' },
+  ])
+  const result = await createPostgresWaitlistStore(fixture.database, () => code, { emailDelivery: true }).add('existing@example.com', 'hero')
+  assert.equal(result.added, false)
+  assert.ok(fixture.calls.every(({ text }) => !text.includes('waitlist_email_outbox')))
+})
+
+test('an outbox failure rolls back the signup instead of losing its confirmation event', async () => {
+  const code = 'a'.repeat(32)
+  const failure = new Error('queue unavailable')
+  const fixture = scriptedDatabase([
+    { contains: 'BEGIN' },
+    { contains: 'ON CONFLICT (email) DO NOTHING', rows: [{ referral_code: code, referred_by: null }] },
+    { contains: 'INSERT INTO waitlist_email_outbox', error: failure },
+    { contains: 'ROLLBACK' },
+  ])
+  await assert.rejects(createPostgresWaitlistStore(fixture.database, () => code, { emailDelivery: true }).add('new@example.com', 'hero'), failure)
+  assert.ok(fixture.calls.every(({ text }) => text !== 'COMMIT'))
+  assert.equal(fixture.releases(), 1)
+})
+
 test('real PostgreSQL migration, concurrent dedupe and first-referral attribution', {
   skip: !process.env.TEST_DATABASE_URL && 'Set TEST_DATABASE_URL to an isolated PostgreSQL test database.',
 }, async () => {
@@ -117,6 +167,7 @@ test('real PostgreSQL migration, concurrent dedupe and first-referral attributio
     database = new Pool({ connectionString: process.env.TEST_DATABASE_URL, max: 8, options: `-c search_path=${schema}` })
     const migration = await readFile(new URL('../sql/001_waitlist.sql', import.meta.url), 'utf8')
     const emailMigration = await readFile(new URL('../sql/002_email_waitlist.sql', import.meta.url), 'utf8')
+    const deliveryMigration = await readFile(new URL('../sql/003_waitlist_email_delivery.sql', import.meta.url), 'utf8')
     await database.query(migration)
     await database.query(migration)
     const legacyCode = 'l'.repeat(32)
@@ -128,7 +179,9 @@ test('real PostgreSQL migration, concurrent dedupe and first-referral attributio
     const legacyRows = (await database.query('SELECT phone, source, referral_code, referred_by, created_at FROM waitlist_signups ORDER BY phone')).rows
     await database.query(emailMigration)
     await database.query(emailMigration)
-    const store = createPostgresWaitlistStore(database)
+    await database.query(deliveryMigration)
+    await database.query(deliveryMigration)
+    const store = createPostgresWaitlistStore(database, undefined, { emailDelivery: true })
     assert.deepEqual((await database.query('SELECT phone, source, referral_code, referred_by, created_at FROM waitlist_signups WHERE phone IS NOT NULL ORDER BY phone')).rows, legacyRows)
     assert.deepEqual(await store.referral(legacyCode), { code: legacyCode, count: 1, goal: 3, priorityAccess: false })
     await store.add('legacy-invite1@example.com', 'test', legacyCode)
@@ -151,6 +204,27 @@ test('real PostgreSQL migration, concurrent dedupe and first-referral attributio
     assert.equal(rows.rows.filter((row) => row.referred_by === inviter.code).length, 3)
     assert.ok(rows.rows.filter((row) => row.email).every((row) => row.source === 'test'))
     assert.equal(rows.rows.find((row) => row.email === 'unknown@example.com').referred_by, null)
+    const queued = (await database.query('SELECT kind, referral_code FROM waitlist_email_outbox')).rows
+    assert.equal(queued.filter((row) => row.kind === 'welcome').length, 8)
+    assert.deepEqual(queued.filter((row) => row.kind === 'priority'), [{ kind: 'priority', referral_code: inviter.code }])
+    assert.ok(queued.every((row) => row.referral_code !== legacyCode && row.referral_code !== legacyInviteeCode))
+    const outbox = createEmailOutbox(database)
+    const deliveredKeys: string[] = []
+    let releaseFirstPair: () => void
+    const firstPairStarted = new Promise<void>((resolve) => { releaseFirstPair = resolve })
+    const worker = {
+      limit: 5,
+      render: ({ email }: { email: string }) => ({ from: 'Open Swarm <hello@example.com>', to: [email], subject: 'Test', html: '<p>Test</p>', text: 'Test' }),
+      send: async (_payload: unknown, key: string) => {
+        deliveredKeys.push(key)
+        if (deliveredKeys.length === 2) releaseFirstPair()
+        await firstPairStarted
+        return { id: `provider-${key}` }
+      },
+    }
+    const drains = await Promise.all([outbox.drain(worker), outbox.drain(worker)])
+    assert.equal(drains.reduce((sum, result) => sum + result.sent, 0), 9)
+    assert.equal(new Set(deliveredKeys).size, 9, 'concurrent workers claim distinct events')
     const rls = await database.query('SELECT relrowsecurity FROM pg_class WHERE oid = $1::regclass', [`${schema}.waitlist_signups`])
     assert.equal(rls.rows[0].relrowsecurity, true)
   } finally {

@@ -50,7 +50,8 @@ items = [
 required = [
     'api/waitlist.ts', 'api/waitlist/referral.ts', 'server/production-waitlist.ts',
     'server/postgres-waitlist.ts', 'server/waitlist.ts', 'sql/001_waitlist.sql',
-    'sql/002_email_waitlist.sql',
+    'sql/002_email_waitlist.sql', 'sql/003_waitlist_email_delivery.sql',
+    'api/waitlist/email-worker.ts', 'api/waitlist/unsubscribe.ts', 'server/waitlist-email.ts',
 ]
 for name in items + required:
     candidate = root / name
@@ -139,14 +140,14 @@ run_vercel pull --yes --environment=production
 npm ci
 run_vercel build --prod
 
-# A successful frontend build is insufficient: both Node functions must be in the artifact.
+# A successful frontend build is insufficient: all Node functions must be in the artifact.
 python3 - "$STAGE/.vercel/output" <<'PY'
 import json, sys
 from pathlib import Path
 output = Path(sys.argv[1])
 if not (output / 'static' / 'index.html').is_file():
     raise SystemExit('Vercel did not produce the website. Nothing has been deployed.')
-for name in ('api/waitlist', 'api/waitlist/referral'):
+for name in ('api/waitlist', 'api/waitlist/referral', 'api/waitlist/email-worker', 'api/waitlist/unsubscribe'):
     bundle = output / 'functions' / f'{name}.func'
     config_file = bundle / '.vc-config.json'
     if not config_file.is_file():
@@ -155,7 +156,7 @@ for name in ('api/waitlist', 'api/waitlist/referral'):
     handler = config.get('handler')
     if not str(config.get('runtime', '')).startswith('nodejs') or not isinstance(handler, str) or not (bundle / handler).is_file():
         raise SystemExit(f'Invalid Node API bundle: {name}. Nothing has been deployed.')
-print('Website and both waitlist API function bundles verified.')
+print('Website and all four waitlist API function bundles verified.')
 PY
 
 run_vercel deploy --prebuilt --prod --yes
