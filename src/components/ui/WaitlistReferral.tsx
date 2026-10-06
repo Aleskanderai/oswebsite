@@ -22,9 +22,10 @@ export function WaitlistShareButton({ className, onClick, children, ...props }: 
   )
 }
 
-export function WaitlistReferralDialog({ initialReferral, justJoined, onClose, onJoin }: {
+export function WaitlistReferralDialog({ initialReferral, justJoined, alreadyJoined = false, onClose, onJoin }: {
   initialReferral: Referral | null
   justJoined: boolean
+  alreadyJoined?: boolean
   onClose: () => void
   onJoin: () => void
 }) {
@@ -139,11 +140,11 @@ export function WaitlistReferralDialog({ initialReferral, justJoined, onClose, o
         <button type="button" className="waitlist-referral-close" aria-label="Close invitation" onClick={onClose}><X size={18} strokeWidth={1.6} aria-hidden /></button>
         <div className="waitlist-referral-header">
           <div className="waitlist-referral-brand"><img src={media('logo-256.png')} alt="" width="21" height="21" aria-hidden /><span>Open Swarm</span></div>
-          <h2 id={titleId} ref={heading} tabIndex={-1}>{referral?.priorityAccess ? 'Priority access unlocked.' : justJoined && !invalidCode ? 'You’re on the list.' : 'Invite friends. Get early access.'}</h2>
+          <h2 id={titleId} ref={heading} tabIndex={-1}>{alreadyJoined && !invalidCode ? 'You’re already on the waitlist.' : referral?.priorityAccess ? 'Priority access unlocked.' : justJoined && !invalidCode ? 'You’re on the list.' : 'Invite friends. Get early access.'}</h2>
         </div>
         <div className="waitlist-referral-body">
         <p id={descriptionId} className="waitlist-referral-description">
-          {justJoined && !invalidCode && <span className="waitlist-referral-next-step">We’ll email you when early access opens.</span>}
+          {(justJoined || alreadyJoined) && !invalidCode && <span className="waitlist-referral-next-step">{alreadyJoined && 'Your spot is saved. '}We’ll email you when early access opens.</span>}
           {referral?.priorityAccess ? 'Three friends joined through your link. You’ve unlocked priority early access.' : 'Invite 3 friends who join the waitlist to unlock priority early access. Open Swarm is 100% free.'}
         </p>
 

@@ -13,7 +13,7 @@ import { LINKS } from '@/lib/utils'
 export function WaitlistForm({ placement }: { placement: 'hero' | 'closing' }) {
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
-  const [status, setStatus] = useState<'idle' | 'submitting' | 'success'>('idle')
+  const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'existing'>('idle')
   const [referral, setReferral] = useState<Referral | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const input = useRef<HTMLInputElement>(null)
@@ -42,7 +42,7 @@ export function WaitlistForm({ placement }: { placement: 'hero' | 'closing' }) {
   }, [placement])
 
   useEffect(() => {
-    if (status === 'success' && !dialogOpen) success.current?.focus({ preventScroll: true })
+    if ((status === 'success' || status === 'existing') && !dialogOpen) success.current?.focus({ preventScroll: true })
     if (status === 'idle' && restoreInputFocus.current) {
       restoreInputFocus.current = false
       input.current?.focus({ preventScroll: true })
@@ -84,14 +84,15 @@ export function WaitlistForm({ placement }: { placement: 'hero' | 'closing' }) {
       if (!response.ok || !result || typeof result !== 'object' || !('ok' in result) || result.ok !== true) {
         throw new Error('Signup unavailable')
       }
+      const added = response.status === 201
       const personalReferral = parseReferral(result)
       if (personalReferral) {
         saveReferralCode(personalReferral.code)
         setReferral(personalReferral)
       }
       setEmail('')
-      setStatus('success')
-      setDialogOpen(true)
+      setStatus(added ? 'success' : 'existing')
+      setDialogOpen(added)
     } catch {
       if (activeRequest.current !== request) return
       setStatus('idle')
@@ -105,17 +106,17 @@ export function WaitlistForm({ placement }: { placement: 'hero' | 'closing' }) {
 
   return (
     <div id={placement === 'hero' ? 'waitlist' : 'waitlist-closing'} className="waitlist relative mx-auto h-11 w-full max-w-[410px] scroll-mt-28">
-      {status === 'success' ? (
+      {status === 'success' || status === 'existing' ? (
         <motion.div id={placement === 'hero' ? 'waitlist-success' : 'waitlist-closing-success'} ref={success} tabIndex={-1} role="status" initial={reducedMotion ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.16 }} className="waitlist-success flex h-11 items-center justify-center gap-2 rounded-[8px] px-3 text-[13px] focus-visible:outline-2 focus-visible:outline-offset-4">
-          <SuccessParticles active className="h-6 w-6 rounded-full bg-white/75 ring-1 ring-black/10">
+          <SuccessParticles active={status === 'success'} className="h-6 w-6 rounded-full bg-white/75 ring-1 ring-black/10">
             <motion.span initial={reducedMotion ? false : { scale: 0.65, rotate: -18 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', visualDuration: 0.24, bounce: 0.22 }}>
               <Check size={16} strokeWidth={2} aria-hidden />
             </motion.span>
           </SuccessParticles>
-          <motion.span className="font-medium" initial={reducedMotion ? false : { opacity: 0, x: -3 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.2, delay: 0.04 }}>You’re in.</motion.span>
-          <WaitlistShareButton className="ml-auto" onClick={(event) => { event.preventDefault(); setDialogOpen(true) }}>Invite friends</WaitlistShareButton>
+          <motion.span className="min-w-0 font-medium leading-tight" initial={reducedMotion ? false : { opacity: 0, x: -3 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.2, delay: 0.04 }}>{status === 'existing' ? 'You’re already on the waitlist.' : 'You’re in.'}</motion.span>
+          <WaitlistShareButton className="ml-auto shrink-0" onClick={(event) => { event.preventDefault(); setDialogOpen(true) }}>{status === 'existing' ? 'Your invite' : 'Invite friends'}</WaitlistShareButton>
           <div className="absolute inset-x-0 top-full mt-2 text-center text-[10.5px] leading-[1.4] text-ink/65">
-            <p>We’ll email you when early access opens.</p>
+            <p>{status === 'existing' && 'Your spot is saved. '}We’ll email you when early access opens.</p>
             <button type="button" aria-label="Join with another email address" className="mt-0.5 underline decoration-black/25 underline-offset-2 hover:text-ink" onClick={() => { restoreInputFocus.current = true; setStatus('idle'); setError('') }}>Another email</button>
           </div>
         </motion.div>
@@ -151,7 +152,7 @@ export function WaitlistForm({ placement }: { placement: 'hero' | 'closing' }) {
           </div>
         </form>
       )}
-      {dialogOpen && <WaitlistReferralDialog initialReferral={referral} justJoined={status === 'success'} onClose={() => setDialogOpen(false)} onJoin={() => {
+      {dialogOpen && <WaitlistReferralDialog initialReferral={referral} justJoined={status === 'success'} alreadyJoined={status === 'existing'} onClose={() => setDialogOpen(false)} onJoin={() => {
         restoreInputFocus.current = true
         setDialogOpen(false)
         setStatus('idle')
