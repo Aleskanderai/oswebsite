@@ -1,17 +1,16 @@
 OPEN SWARM
 
+Your Jarvis. With priority.
+
 You’ve unlocked priority early access.
+Three friends joined through your link. Your priority early access is confirmed.
 
-Three friends joined through your link. You’ve unlocked priority early access to Open Swarm.
-
-Thanks for bringing good people along. We’ll email you when your invitation is ready.
-
-Your place on the waitlist is still saved. Access arrives in a separate invitation.
+Your place is saved. We’ll email you when your invitation is ready.
 
 Explore Open Swarm: https://openswarm.com/#product
 
-Glad you’re here,
-The Open Swarm team
+Your priority status is saved. Access arrives in a separate invitation.
 
+Open Swarm · For Mac
 You’re receiving this because you joined the Open Swarm waitlist.
-Unsubscribe from waitlist emails: https://openswarm.com/api/waitlist/unsubscribe?token=preview-only-not-a-real-subscription
+Unsubscribe: https://openswarm.com/api/waitlist/unsubscribe?token=preview-only-not-a-real-subscription

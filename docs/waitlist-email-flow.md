@@ -1,5 +1,7 @@
 # Open Swarm waitlist emails
 
+> **Selected design: 13 — Ink margin.** The production direction is a white-and-plum email with a vertical original ink print beside the live confirmation. Welcome and priority messages share this visual system. The production-template preview uses [localhost:4314](http://localhost:4314). Selection is complete; template validation is recorded below. No email was sent and no delivery environment was activated.
+
 The email flow extends the existing email waitlist and preserves its signup response. Sending is **off by default**. No real emails were sent, no live database was migrated, and no provider credentials were configured while building this addition.
 
 ## Preview the design
@@ -8,26 +10,30 @@ The email flow extends the existing email waitlist and preserves its signup resp
 npm run email:preview
 ```
 
-Open [localhost:4312](http://localhost:4312). The gallery switches between confirmation and priority emails, desktop and 390px mobile widths, and a simulated dark inbox background. It also includes plain-text versions. The preview server only serves generated files and artwork; it has no delivery transport.
+Open [localhost:4314](http://localhost:4314). The production preview switches between confirmation and priority emails, desktop, 390px and 320px widths, a simulated dark view, and an artwork-off view. It also includes plain-text versions. Artwork-off removes the decorative ink background while retaining the solid fallback and live content; actual image blocking varies by email client. The preview server only serves generated files and assets; it has no delivery transport.
 
-`npm run email:build` exports the [gallery](email-preview/index.html), [confirmation](email-preview/welcome.html), [priority message](email-preview/priority.html), and matching `.txt` files. These are review artifacts with fictional referral codes, inactive unsubscribe tokens, and relative image paths. Production messages are rendered per recipient with absolute HTTPS asset URLs and signed unsubscribe links.
+`npm run email:build` exports the [gallery](email-preview/index.html), [confirmation](email-preview/welcome.html), [priority message](email-preview/priority.html), and matching `.txt` files. These are review artifacts with fictional referral codes, inactive unsubscribe tokens, and relative image paths. Production messages are rendered per recipient with absolute HTTPS asset URLs and signed unsubscribe links. Local preview rewriting covers every `https://openswarm.com/media/` reference rather than only image `src` attributes.
 
-The refined design uses a 560px white reading column, small original octopus wordmark, and one restrained invitation illustration. Helvetica Neue with Segoe UI/Helvetica/Arial fallbacks provides warmer, quieter typography: 28px regular-weight headings (26px on mobile), 15px/24px body text, and 17px secondary headings. A fine divider introduces the three-referral benefit and a compact, left-aligned sharing button. HTML tables and inline styles keep the confirmation, referral offer, and links readable when images are blocked. No external font download is required.
+## Selected production design
 
-The supplied [LaunchList article](https://getlaunchlist.com/blog/waitlist-email-templates-that-get-opened) and [Crafting Emails examples](https://craftingemails.com/vari-waitlist-email-templates) informed the sequence: confirm the signup, set expectations, offer one clear action. Copy and implementation are original. No purchased template code was used.
+**Ink margin** keeps the approved 13 composition: a 600px white email, deep plum `#53172e` type and button, and a **185px vertical ink margin** beside the confirmation at desktop width. The original small Open Swarm logo sits above the letter. The artwork is part of the reading layout rather than a separate product screenshot or feature panel.
 
-### Visual reference lock and artwork
+The welcome headline is “A Jarvis of your own.” A short status and opening immediately confirm that the recipient is on the waitlist, their spot is saved, and access will arrive later by email. The product sentence describes the AI desktop for Mac and agents that browse, research, and build useful tools. **“Take a closer look”** is the one primary button and links to the real product section.
 
-The user-supplied Jev email screenshot anchors the compact, letter-like hierarchy and direct confirmation. Crafting Emails contributes a single primary action and a friendly illustration. Open Swarm contributes the original coral mark and the three-friend reward. The user requested smaller, less cold typography and a sleek design; the refinement removes the oversized celebration panel, slogans, numbered tiles, and dark promotional card. Refero’s live search was unavailable, so its bundled typography guidance and the supplied references informed the build.
+Sharing stays quiet beneath the letter. The live referral sentence explains that **three friends must join through the personal link** to earn priority early access. A secondary “Share your invite” link opens a prepared email draft; the personal referral link remains available independently. There is no progress counter, queue rank, large reward headline, or claim that access is already ready.
 
-`public/media/email/invitations.jpg` is original synthetic artwork generated with Higgsfield GPT Image 2 on September 30, 2026. Its art direction is three translucent vellum invitations, one coral insert, soft daylight, a pure white background, and no text or logos. The 2688 × 1152 source was resized to 1120 × 480 JPEG (about 53KB), displayed at up to 560 × 240. The paper and artwork remain white in the dark preview, with a dark outer canvas and readable footer. The original logo is reused separately, unchanged. The image is decorative; it does not claim that access invitations have already been issued.
+The priority message uses the same white/plum palette, ink margin, typography, and product action. Its copy confirms the actual three-signup milestone and saved priority status, and explicitly says that access arrives in a separate invitation. It does not ask the recipient to earn the same milestone again.
+
+Newsreader headlines and Manrope body copy preserve the selected typography where supported. Georgia/Times and Helvetica/Arial system fallbacks keep the letter readable when custom fonts are unavailable. Production markup uses presentation tables, explicit widths, inline color/spacing styles, and live text. Responsive adjustments reduce the margin and text sizes for narrow screens; browser preview styling is not copied wholesale into the delivered email.
+
+The original Higgsfield artwork is `public/media/email/forty/motion-13.jpg`, a coral-and-ultramarine ink print on textured paper. It is displayed as the vertical margin background with a solid-color fallback. It contains no product screenshot, interface, recipient information, or essential copy. If artwork is blocked or a client ignores the background, the Jarvis headline, confirmation, product button, referral condition, personal link, and unsubscribe remain usable. The original logo is reused separately.
 
 ## What subscribers receive
 
 | Trigger | Subject | Content and action |
 | --- | --- | --- |
-| New saved email signup while delivery is enabled | You're on the Open Swarm waitlist | Confirms the saved spot and explains that access will arrive by email. “Share your invite” opens a prepared email draft containing the personal referral URL; the same URL is visible for copying. |
-| Third unique referred signup | You've unlocked priority early access | Confirms the existing three-referral milestone. Explains that the actual invitation will arrive separately. Links back to the product section. |
+| New saved email signup while delivery is enabled | Your own Jarvis. You’re on the list. | “A Jarvis of your own.” leads into the saved waitlist status and future access email. “Take a closer look” links to the product section. Quiet referral copy explains the three-signup condition, with a secondary sharing draft and personal link. |
+| Third unique referred signup | You’ve unlocked priority early access | Uses the same Ink margin design, confirms the real three-referral milestone and saved priority status, and explains that the actual invitation will arrive separately. Links back to the product section. |
 | Duplicate signup | No new email | Returns existing referral progress without changing attribution, resending, or undoing an opt-out. |
 | Unsubscribe | No additional confirmation email | Suppresses future waitlist messages while retaining the saved signup and referral history. |
 
@@ -55,7 +61,7 @@ flowchart LR
 
    Migration 003 adds private opt-out metadata and the durable queue. It is additive and rerunnable. It does not enqueue existing contacts or import local signup data. Requests and deploy scripts never apply migrations automatically.
 
-3. Deploy the repository root with all four API functions and the public email artwork. Confirm that the canonical public domain serves `/media/logo-256.png`, `/media/email/invitations.jpg`, the referral landing page, and `/api/waitlist/unsubscribe`.
+3. Deploy the repository root with all four API functions and the public email artwork. Confirm that the canonical public domain serves `/media/logo-256.png`, `/media/email/forty/motion-13.jpg`, the three `.ttf` assets under `/media/email/fonts/` (`newsreader-400`, `manrope-400`, `manrope-500`), the referral landing page, and `/api/waitlist/unsubscribe`.
 4. Configure the following **server-only** settings in the hosting environment. Keep them out of `VITE_` variables and Git:
 
    | Variable | Value |
@@ -93,13 +99,22 @@ Implementation references: [Resend send API](https://resend.com/docs/api-referen
 
 ## Verification
 
+The selected production renderer passed its October 5, 2026 verification:
+
+- `npm run email:build` generated both messages and their plain-text versions.
+- `npm run build` passed with the existing bundle-size advisory.
+- `npm run lint` reported no errors and 18 existing warnings outside this change.
+- The server suite passed 56 of 58 tests with no failures. Two database integration tests were explicitly skipped because `PGLITE_TEST_MODULE` and `TEST_DATABASE_URL` were not configured. All seven email renderer tests passed, including recipient-specific links, escaping, live-content fallbacks, and packaged artwork/fonts.
+- Browser review checked welcome and priority at 600px, 390px, and 320px, plus simulated dark and artwork-off views. The selected composition, readable content, product button, quiet referral footer, and unsubscribe remained intact, with no observed clipping. The real renderer was reviewed, not just the original concept gallery.
+
+No provider email was sent. Actual Gmail, Apple Mail, and Outlook inbox rendering and hosted asset delivery remain deployment/activation checks.
+
 ```sh
+npm run email:build
 npm run build
 npm run lint
 node --experimental-strip-types --test server/*.test.ts
 ```
-
-The September 30 verification passed 53 tests, including the embedded SQL test, with the live PostgreSQL suite explicitly skipped. The production build passes; lint reports only the existing scene warnings.
 
 Tests cover rendering and escaping, HTML/plain-text parity, configuration gating, provider failure classification, signup response preservation, worker authentication, signed opt-out, transaction rollback, duplicate suppression, referral milestones, immutable retry payloads, lease recovery, and the retry deadline.
 
