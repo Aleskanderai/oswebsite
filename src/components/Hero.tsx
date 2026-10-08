@@ -7,6 +7,7 @@ import { WaitlistForm } from './ui/WaitlistForm'
 import { WaitlistShareButton } from './ui/WaitlistReferral'
 import { media } from '@/lib/utils'
 import { NumberTicker } from './ui/number-ticker'
+import { ProductHuntBadge } from './ui/ProductHuntBadge'
 
 export function Hero() {
   return (
@@ -18,18 +19,21 @@ export function Hero() {
         <HeroCloudBorder />
 
         <div className="relative mx-auto max-w-[1240px] px-4 pt-[104px] text-center sm:px-8 sm:pt-[116px]">
-          <a
-            href="https://www.joinef.com"
-            target="_blank"
-            rel="noreferrer"
-            className="group relative inline-flex h-8 items-center gap-2 rounded-full bg-[var(--ef-purple)] pl-3.5 pr-2.5 text-[12.5px] font-medium text-white/90 shadow-[0_6px_18px_-8px_rgba(99,0,221,0.7)] transition-transform after:absolute after:inset-x-0 after:-inset-y-1 hover:-translate-y-px"
-          >
-            Backed by
-            <EfWordmark className="h-[9px] w-auto" />
-            <svg viewBox="0 0 12 12" className="h-3 w-3 opacity-60 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={1.6} aria-hidden>
-              <path d="M4.5 3 7.5 6l-3 3" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </a>
+          <div className="product-hunt-proof">
+            <a
+              href="https://www.joinef.com"
+              target="_blank"
+              rel="noreferrer"
+              className="group relative inline-flex h-8 items-center gap-2 rounded-full bg-[var(--ef-purple)] pl-3.5 pr-2.5 text-[12.5px] font-medium text-white/90 shadow-[0_6px_18px_-8px_rgba(99,0,221,0.7)] transition-transform after:absolute after:inset-x-0 after:-inset-y-1 hover:-translate-y-px"
+            >
+              Backed by
+              <EfWordmark className="h-[9px] w-auto" />
+              <svg viewBox="0 0 12 12" className="h-3 w-3 opacity-60 transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" strokeWidth={1.6} aria-hidden>
+                <path d="M4.5 3 7.5 6l-3 3" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </a>
+            <ProductHuntBadge placement="hero" />
+          </div>
 
           <h1 className="mx-auto mt-5 max-w-[850px] font-display text-[40px] font-normal leading-[1.08] tracking-[-0.045em] text-[#0a2028] sm:mt-5 sm:text-[54px] lg:text-[60px]">
             Everyone gets a Jarvis now.

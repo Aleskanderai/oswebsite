@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useIsPresent, useMotionValueEvent, useReducedMotion, useScroll } from 'motion/react'
 import { ChevronDown, ChevronRight, Menu as MenuIcon, X } from 'lucide-react'
 import { WaitlistLink } from './ui/WaitlistLink'
+import { ProductHuntBadge } from './ui/ProductHuntBadge'
 import { IconAsset, type IconAssetName } from './IconAsset'
 import { NavFeature } from './NavFeature'
 import { cn, EASE, LINKS, media } from '@/lib/utils'
@@ -246,10 +247,10 @@ export function Nav() {
                 : 'mt-3 w-[calc(100%-16px)] max-w-[1320px] rounded-[12px] bg-transparent sm:mt-4',
           )}
         >
-          <nav className="flex h-14 items-center justify-between pl-4 pr-2.5 sm:pl-5" aria-label="Main">
+          <nav className="product-hunt-nav flex h-14 items-center justify-between pl-4 pr-2.5 sm:pl-5" aria-label="Main">
             <a href="#top" onClick={(event) => { if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && event.button === 0) closeMobile() }} className="flex shrink-0 items-center gap-2" aria-label="Open Swarm home">
               <img src={media('logo-256.png')} alt="" className="h-7 w-7 [image-rendering:pixelated]" />
-              <span className="text-[15px] font-semibold tracking-[-0.02em] text-ink min-[360px]:text-[17px]">Open Swarm</span>
+              <span className="product-hunt-nav-wordmark text-[15px] font-semibold tracking-[-0.02em] text-ink min-[360px]:text-[17px]">Open Swarm</span>
             </a>
 
             <ul className="absolute left-1/2 hidden w-max -translate-x-1/2 items-center whitespace-nowrap md:flex">
@@ -310,7 +311,8 @@ export function Nav() {
               })}
             </ul>
 
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="product-hunt-nav-actions flex items-center gap-1.5 sm:gap-2">
+              <ProductHuntBadge placement="nav" />
               <WaitlistLink
                 source="nav"
                 onClick={closeMobile}
